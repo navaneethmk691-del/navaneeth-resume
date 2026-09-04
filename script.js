@@ -380,7 +380,60 @@ document.addEventListener("DOMContentLoaded", () => {
        PARTICLES
     ===================================================== */
 
-    function createParticles() {
+    function createParticles()
+    function createChakra() {
+    const chakra = document.createElement("div");
+    chakra.id = "void-chakra";
+
+    chakra.innerHTML = `
+        <div class="void-chakra-aura"></div>
+        <div class="void-chakra-ring"></div>
+
+        <div class="void-chakra-petals" id="chakra-outer"></div>
+
+        <div class="void-chakra-inner" id="chakra-inner"></div>
+
+        <div class="void-chakra-center"></div>
+    `;
+
+    document.body.appendChild(chakra);
+
+    const outer = chakra.querySelector("#chakra-outer");
+    const inner = chakra.querySelector("#chakra-inner");
+
+    // Outer 32 petals
+    for (let i = 0; i < 32; i++) {
+        const petal = document.createElement("div");
+        petal.className = "void-chakra-petal";
+
+        const angle = i * (360 / 32);
+
+        petal.style.transform =
+            `translate(-50%, -100%) rotate(${angle}deg)`;
+
+        outer.appendChild(petal);
+    }
+
+    // Inner 16 petals
+    for (let i = 0; i < 16; i++) {
+        const petal = document.createElement("div");
+        petal.className = "void-chakra-petal";
+
+        const angle = i * (360 / 16) + 11.25;
+
+        petal.style.transform =
+            `translate(-50%, -100%) rotate(${angle}deg)`;
+
+        inner.appendChild(petal);
+    }
+
+    // Appear only after the intro
+    setTimeout(() => {
+        chakra.classList.add("active");
+    }, 1900);
+}
+
+createChakra(); {
 
         if (
             document.getElementById(
