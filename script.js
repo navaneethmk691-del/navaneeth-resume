@@ -29,59 +29,86 @@ document.addEventListener("DOMContentLoaded", () => {
 
     introSound.id = "introSound";
 
-    introSound.src = "assets/sounds/intro.mp3";
+    introSound.src = "intro.mp3";
 
     introSound.preload = "auto";
 
     introSound.volume = 0.35;
 
-    introSound.autoplay = true;
-
     document.body.appendChild(introSound);
 
 
-    /*
-       Browsers may block audible autoplay.
-       We attempt playback immediately.
-    */
-
-    window.addEventListener("load", () => {
-
-        const playSound = introSound.play();
-
-        if (playSound !== undefined) {
-
-            playSound.catch(() => {
-
-                console.log(
-                    "Browser blocked automatic audio playback."
-                );
-
-            });
-
-        }
-
-    });
-
-
     /* =====================================================
-       INTRO EXIT
+       TOUCH / CLICK TO START
        ===================================================== */
 
-    setTimeout(() => {
+    let introStarted = false;
+
+    function startIntro() {
+
+        if (introStarted) return;
+
+        introStarted = true;
+
+        introSound.currentTime = 0;
+
+        introSound.play().catch(error => {
+
+            console.log(
+                "Audio playback failed:",
+                error
+            );
+
+        });
 
         intro.classList.add("hide");
 
-    }, 4200);
+        setTimeout(() => {
+
+            intro.remove();
+
+        }, 1400);
+
+    }
 
 
-    setTimeout(() => {
+    /* =====================================================
+       TOUCH ANYWHERE ON SCREEN
+       ===================================================== */
 
-        intro.remove();
+    document.addEventListener(
+        "touchstart",
+        startIntro,
+        {
+            once: true,
+            passive: true
+        }
+    );
 
-    }, 5600);
+
+    /* =====================================================
+       MOUSE / DESKTOP SUPPORT
+       ===================================================== */
+
+    document.addEventListener(
+        "click",
+        startIntro,
+        {
+            once: true
+        }
+    );
 
 
+    /* =====================================================
+       INTRO FALLBACK
+       ===================================================== */
+
+    /*
+       If the user does not touch the screen,
+       the intro remains visible.
+    */
+
+    
     /* =====================================================
        SMOOTH NAVIGATION
        ===================================================== */
@@ -96,8 +123,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const targetID =
                 link.getAttribute("href");
 
-            if (!targetID ||
-                !targetID.startsWith("#")) {
+            if (
+                !targetID ||
+                !targetID.startsWith("#")
+            ) {
 
                 return;
             }
