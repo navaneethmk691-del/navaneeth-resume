@@ -2469,3 +2469,589 @@ button:focus-visible {
         animation: none;
     }
 }
+/* =========================================================
+   ANIME BATTLE BACKGROUND
+   ========================================================= */
+
+#anime-battle {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+
+/* Keep website content above effects */
+
+header,
+main,
+footer {
+    position: relative;
+    z-index: 5;
+}
+
+
+/* =========================================================
+   AURA
+   ========================================================= */
+
+#battle-aura {
+    position: absolute;
+    width: 55vw;
+    height: 55vw;
+    max-width: 700px;
+    max-height: 700px;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255, 0, 0, 0.16) 0%,
+            rgba(180, 0, 0, 0.08) 30%,
+            transparent 70%
+        );
+
+    filter: blur(20px);
+
+    animation:
+        battleAuraPulse 3s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes battleAuraPulse {
+
+    0%,
+    100% {
+        transform:
+            translate(-50%, -50%)
+            scale(0.85);
+        opacity: 0.45;
+    }
+
+    50% {
+        transform:
+            translate(-50%, -50%)
+            scale(1.15);
+        opacity: 0.9;
+    }
+
+}
+
+
+/* =========================================================
+   ENERGY CORE
+   ========================================================= */
+
+#energy-core {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 12px;
+    height: 12px;
+
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+
+    background: #ff2222;
+
+    box-shadow:
+        0 0 15px #ff2222,
+        0 0 40px #ff0000,
+        0 0 100px rgba(255, 0, 0, 0.8);
+
+    animation:
+        corePulse 1.5s
+        ease-in-out
+        infinite;
+}
+
+
+@keyframes corePulse {
+
+    0%,
+    100% {
+        transform:
+            translate(-50%, -50%)
+            scale(0.7);
+    }
+
+    50% {
+        transform:
+            translate(-50%, -50%)
+            scale(2.5);
+    }
+
+}
+
+
+/* =========================================================
+   PARTICLES
+   ========================================================= */
+
+#battle-particles,
+#speed-lines,
+#slash-layer,
+#impact-layer,
+#energy-layer {
+    position: absolute;
+    inset: 0;
+}
+
+
+.battle-particle {
+
+    position: absolute;
+
+    width: 3px;
+    height: 3px;
+
+    border-radius: 50%;
+
+    background: #ff3333;
+
+    box-shadow:
+        0 0 8px #ff0000,
+        0 0 15px rgba(255, 0, 0, 0.8);
+
+    animation:
+        particleFloat
+        linear
+        infinite;
+}
+
+
+@keyframes particleFloat {
+
+    0% {
+        transform:
+            translate3d(0, 40px, 0)
+            scale(0);
+
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    80% {
+        opacity: 0.8;
+    }
+
+    100% {
+        transform:
+            translate3d(
+                30px,
+                -160px,
+                0
+            )
+            scale(1.4);
+
+        opacity: 0;
+    }
+
+}
+
+
+/* =========================================================
+   ANIME SPEED LINES
+   ========================================================= */
+
+.anime-speed-line {
+
+    position: absolute;
+
+    width: 180px;
+    height: 2px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #ff2222,
+            transparent
+        );
+
+    filter:
+        drop-shadow(
+            0 0 5px #ff0000
+        );
+
+    transform:
+        rotate(-12deg);
+
+    animation:
+        speedLineMove
+        linear
+        forwards;
+}
+
+
+@keyframes speedLineMove {
+
+    from {
+        transform:
+            translateX(-300px)
+            rotate(-12deg);
+
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    to {
+        transform:
+            translateX(
+                130vw
+            )
+            rotate(-12deg);
+
+        opacity: 0;
+    }
+
+}
+
+
+/* =========================================================
+   ENERGY WAVE
+   ========================================================= */
+
+.anime-energy-wave {
+
+    position: absolute;
+
+    width: 20px;
+    height: 20px;
+
+    transform:
+        translate(-50%, -50%);
+
+    border:
+        2px solid
+        rgba(255, 30, 30, 0.9);
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 15px #ff1111,
+        inset 0 0 15px #ff1111;
+
+    animation:
+        energyWave
+        0.9s
+        cubic-bezier(
+            0.1,
+            0.7,
+            0.2,
+            1
+        )
+        forwards;
+}
+
+
+@keyframes energyWave {
+
+    from {
+
+        width: 20px;
+        height: 20px;
+
+        opacity: 1;
+
+    }
+
+    to {
+
+        width: 420px;
+        height: 420px;
+
+        opacity: 0;
+
+    }
+
+}
+
+
+/* =========================================================
+   ANIME SLASH
+   ========================================================= */
+
+.anime-slash {
+
+    position: absolute;
+
+    width: 55vw;
+    height: 8px;
+
+    max-width: 900px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,0.9),
+            #ff2222,
+            rgba(255,255,255,0.9),
+            transparent
+        );
+
+    border-radius: 100%;
+
+    filter:
+        blur(1px)
+        drop-shadow(
+            0 0 10px #ff0000
+        );
+
+    transform-origin:
+        center;
+
+    animation:
+        animeSlash
+        0.65s
+        cubic-bezier(
+            0.2,
+            0.8,
+            0.1,
+            1
+        )
+        forwards;
+}
+
+
+.slash-left {
+
+    transform:
+        rotate(-18deg)
+        translateX(0);
+
+}
+
+
+.slash-right {
+
+    transform:
+        rotate(18deg)
+        translateX(0);
+
+}
+
+
+@keyframes animeSlash {
+
+    0% {
+
+        opacity: 0;
+
+        filter:
+            blur(8px)
+            drop-shadow(
+                0 0 30px #ff0000
+            );
+
+    }
+
+    20% {
+
+        opacity: 1;
+
+    }
+
+    100% {
+
+        transform:
+            translateX(
+                100vw
+            )
+            rotate(
+                -18deg
+            );
+
+        opacity: 0;
+
+    }
+
+}
+
+
+/* =========================================================
+   IMPACT
+   ========================================================= */
+
+.anime-impact {
+
+    position: absolute;
+
+    width: 20px;
+    height: 20px;
+
+    transform:
+        translate(-50%, -50%);
+
+    border-radius: 50%;
+
+    background:
+        white;
+
+    box-shadow:
+        0 0 10px white,
+        0 0 30px #ff2222,
+        0 0 70px #ff0000;
+
+    animation:
+        animeImpact
+        0.7s
+        ease-out
+        forwards;
+}
+
+
+@keyframes animeImpact {
+
+    0% {
+
+        transform:
+            translate(-50%, -50%)
+            scale(0.2);
+
+        opacity: 1;
+
+    }
+
+    20% {
+
+        transform:
+            translate(-50%, -50%)
+            scale(3);
+
+        opacity: 1;
+
+    }
+
+    100% {
+
+        transform:
+            translate(-50%, -50%)
+            scale(15);
+
+        opacity: 0;
+
+    }
+
+}
+
+
+/* =========================================================
+   VOID MODE
+   ========================================================= */
+
+body.void-mode #battle-aura {
+
+    animation:
+        voidAura 0.5s
+        ease-in-out
+        infinite alternate;
+
+}
+
+
+body.void-mode #energy-core {
+
+    transform:
+        translate(-50%, -50%)
+        scale(4);
+
+    box-shadow:
+        0 0 30px #ff0000,
+        0 0 80px #ff0000,
+        0 0 180px #ff0000;
+
+}
+
+
+@keyframes voidAura {
+
+    from {
+        transform:
+            translate(-50%, -50%)
+            scale(0.8);
+
+        opacity: 0.5;
+    }
+
+    to {
+        transform:
+            translate(-50%, -50%)
+            scale(1.4);
+
+        opacity: 1;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    #battle-aura {
+
+        width: 100vw;
+        height: 100vw;
+
+    }
+
+
+    .anime-slash {
+
+        width: 100vw;
+        height: 5px;
+
+    }
+
+
+    .anime-energy-wave {
+
+        max-width: 300px;
+        max-height: 300px;
+
+    }
+
+}
+
+
+/* =========================================================
+   REDUCE MOTION
+   ========================================================= */
+
+@media (
+    prefers-reduced-motion: reduce
+) {
+
+    #battle-aura,
+    #energy-core,
+    .battle-particle,
+    .anime-speed-line,
+    .anime-slash {
+
+        animation: none;
+
+    }
+
+}
