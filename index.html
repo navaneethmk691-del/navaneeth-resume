@@ -1,188 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <title>VOIDSPOKEN | Navaneeth Krishnan M.K.</title>
 
-    <meta
-        name="theme-color"
-        content="#050505"
-    >
+    <meta name="description" content="Navaneeth Krishnan M.K. | BCA Cybersecurity Student | Technology, Science, Philosophy, AI and Independent Research">
 
-    <title>VOIDSPOKEN</title>
+    <link rel="stylesheet" href="style.css">
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 </head>
-
 
 <body>
 
-
-    <!-- =========================================
-         ANIME BATTLE BACKGROUND
-         ========================================= -->
-
-    <div id="anime-battle">
-
-        <div id="battle-aura"></div>
-
-        <div id="energy-core"></div>
-
-        <div id="speed-lines"></div>
-
-        <div id="battle-particles"></div>
-
-        <div id="slash-layer"></div>
-
-        <div id="impact-layer"></div>
-
-        <div id="energy-layer"></div>
-
-    </div>
-
-
-    <!-- =========================================
-         VOID INTRO
-         ========================================= -->
+    <!-- =========================
+         PRELOADER / VOID INTRO
+    ========================== -->
 
     <div id="void-intro">
-
-        <div class="void-intro-grid"></div>
-
-        <div class="void-intro-content">
-
-            <div class="void-energy-ring"></div>
-
-            <div class="void-energy-ring ring-two"></div>
-
-            <div class="void-energy-ring ring-three"></div>
-
-            <div class="void-intro-symbol">
-                ∅
-            </div>
-
-            <div class="void-intro-title">
-                VOIDSPOKEN
-            </div>
-
-            <div class="void-intro-subtitle">
-                ENTER THE VOID
-            </div>
-
-            <div class="void-intro-status">
-                INITIALIZING REALITY...
-            </div>
-
-        </div>
-
+        <div class="intro-rune">V</div>
+        <div class="intro-title">VOIDSPOKEN</div>
+        <div class="intro-subtitle">ENTER THE VOID</div>
+        <div class="intro-line"></div>
     </div>
 
 
-    <!-- =========================================
-         HEADER
-         ========================================= -->
+    <!-- =========================
+         THREE.JS BACKGROUND
+    ========================== -->
 
-    <header id="home">
+    <canvas id="void-canvas"></canvas>
 
-        <nav>
+    <div id="anime-battle">
+        <div id="battle-aura"></div>
+        <div id="energy-core"></div>
+        <div id="speed-lines"></div>
+        <div id="battle-particles"></div>
+        <div id="slash-layer"></div>
+        <div id="impact-layer"></div>
+        <div id="energy-layer"></div>
+    </div>
 
-            <div class="logo">
-                VOIDSPOKEN
-            </div>
+    <div id="screen-flash"></div>
+    <div id="touch-ripple-layer"></div>
 
-            <ul>
 
-                <li>
-                    <a href="#about">
-                        About
-                    </a>
-                </li>
+    <!-- =========================
+         NAVIGATION
+    ========================== -->
 
-                <li>
-                    <a href="#education">
-                        Education
-                    </a>
-                </li>
+    <header class="site-header">
 
-                <li>
-                    <a href="#skills">
-                        Skills
-                    </a>
-                </li>
+        <a href="#home" class="brand">
+            <span class="brand-symbol">V</span>
+            <span class="brand-name">VOIDSPOKEN</span>
+        </a>
 
-                <li>
-                    <a href="#projects">
-                        Projects
-                    </a>
-                </li>
+        <button id="menu-toggle" class="menu-toggle" aria-label="Open navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
-                <li>
-                    <a href="#vision">
-                        Vision
-                    </a>
-                </li>
-
-            </ul>
-
+        <nav id="main-nav">
+            <a href="#home">HOME</a>
+            <a href="#profile">PROFILE</a>
+            <a href="#education">EDUCATION</a>
+            <a href="#skills">SKILLS</a>
+            <a href="#knowledge">KNOWLEDGE</a>
+            <a href="#vsecr">VSECR</a>
+            <a href="#projects">PROJECTS</a>
+            <a href="#identity">IDENTITY</a>
+            <a href="#vision">VISION</a>
         </nav>
-
-
-        <div class="hero">
-
-            <div class="hero-symbol">
-                ∅
-            </div>
-
-            <h1>
-                NAVANEETH
-                <br>
-                <span>KRISHNAN M. K.</span>
-            </h1>
-
-            <p>
-                BCA Cybersecurity Student
-            </p>
-
-            <p class="hero-sub">
-                Technology • Cybersecurity • Creation
-            </p>
-
-        </div>
 
     </header>
 
 
-    <!-- =========================================
-         MAIN
-         ========================================= -->
+    <!-- =========================
+         SCROLL PROGRESS
+    ========================== -->
+
+    <div id="scroll-progress"></div>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
 
     <main>
 
+        <!-- HERO -->
 
-        <section id="about">
+        <section id="home" class="hero section">
 
-            <h2>
-                ABOUT
-            </h2>
+            <div class="hero-grid"></div>
 
-            <div class="card">
+            <div class="hero-content">
+
+                <div class="hero-overline">
+                    PERSONAL TECHNOLOGY ARCHIVE
+                </div>
+
+                <h1>
+                    NAVANEETH<br>
+                    <span>KRISHNAN M. K.</span>
+                </h1>
+
+                <p class="hero-role">
+                    BCA Cybersecurity Student
+                    <span>|</span>
+                    Technology & Science Enthusiast
+                    <span>|</span>
+                    Aspiring Researcher
+                </p>
+
+                <div class="hero-location">
+                    Kerala, India
+                </div>
+
+                <div class="hero-brand">
+                    PERSONAL BRAND:
+                    <strong>VOIDSPOKEN</strong>
+                </div>
+
+                <div class="hero-actions">
+                    <a href="#profile" class="void-button">
+                        <span>ENTER THE ARCHIVE</span>
+                    </a>
+
+                    <button id="void-mode-button" class="void-button secondary">
+                        <span>VOID MODE</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="hero-scroll">
+                <span>SCROLL</span>
+                <div class="scroll-line"></div>
+            </div>
+
+        </section>
+
+
+        <!-- PROFILE -->
+
+        <section id="profile" class="section content-section reveal-section">
+
+            <div class="section-heading">
+                <span class="section-number">01</span>
+                <div>
+                    <span class="eyebrow">WHO I AM</span>
+                    <h2>PROFESSIONAL PROFILE</h2>
+                </div>
+            </div>
+
+            <div class="text-card large-card">
 
                 <p>
-                    I am Navaneeth Krishnan M. K.,
-                    a BCA Cybersecurity student with
-                    an interest in technology,
-                    cybersecurity, creative thinking
-                    and unconventional ideas.
+                    First-year BCA Cybersecurity student with a vocational background in Junior Software Development and a broad multidisciplinary interest in cybersecurity, computer science, artificial intelligence, science, philosophy, psychology, strategic thinking, creative writing, music, and technology.
+                </p>
+
+                <p>
+                    Currently developing technical knowledge in programming, web development, Linux, cybersecurity fundamentals, data-oriented Python tools, and computer technologies. Enjoys independent learning, exploring complex subjects, analyzing problems from different perspectives, developing original ideas, and understanding how technological, scientific, and human systems work.
+                </p>
+
+                <p>
+                    Has a particular interest in the intersection of technology, philosophy, science, consciousness, human behavior, and artificial intelligence. Develops independent concepts and theoretical ideas alongside practical technical projects.
+                </p>
+
+                <p>
+                    Long-term academic interests include cybersecurity, AI systems security, computer science, and advanced research. Future interests also include teaching and technology entrepreneurship.
                 </p>
 
             </div>
@@ -190,173 +185,1107 @@
         </section>
 
 
-        <section id="education">
+        <!-- EDUCATION -->
 
-            <h2>
-                EDUCATION
-            </h2>
+        <section id="education" class="section content-section">
 
-            <div class="card">
+            <div class="section-heading">
+                <span class="section-number">02</span>
+                <div>
+                    <span class="eyebrow">ACADEMIC PATH</span>
+                    <h2>EDUCATION</h2>
+                </div>
+            </div>
+
+            <div class="timeline">
+
+                <article class="timeline-card">
+                    <span class="timeline-year">2026 — PRESENT</span>
+
+                    <h3>Bachelor of Computer Applications</h3>
+                    <h4>Cybersecurity</h4>
+
+                    <p>
+                        Sadhanam College, Pathiripala, Kerala
+                    </p>
+
+                    <p>
+                        Currently pursuing First Year BCA Cybersecurity.
+                    </p>
+                </article>
+
+
+                <article class="timeline-card">
+
+                    <span class="timeline-year">COMPLETED — 2026</span>
+
+                    <h3>Vocational Higher Secondary Education</h3>
+                    <h4>Junior Software Development</h4>
+
+                    <p>
+                        NSS KPT VHSS, Ottapalam, Kerala
+                    </p>
+
+                    <p>
+                        Specialization: Junior Software Development / Computer Science
+                    </p>
+
+                </article>
+
+
+                <article class="timeline-card">
+
+                    <span class="timeline-year">SSLC</span>
+
+                    <h3>Kerala Board</h3>
+
+                    <div class="score">
+                        93.4%
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- TECHNICAL SKILLS -->
+
+        <section id="skills" class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">03</span>
+                <div>
+                    <span class="eyebrow">TECHNICAL FOUNDATION</span>
+                    <h2>TECHNICAL SKILLS</h2>
+                </div>
+            </div>
+
+
+            <div class="card-grid">
+
+                <article class="info-card">
+                    <div class="card-icon">&lt;/&gt;</div>
+
+                    <h3>Programming & Development</h3>
+
+                    <ul>
+                        <li>Python</li>
+                        <li>SQL</li>
+                        <li>HTML</li>
+                        <li>CSS</li>
+                        <li>Basic JavaScript</li>
+                        <li>Programming fundamentals</li>
+                        <li>Web development fundamentals</li>
+                    </ul>
+                </article>
+
+
+                <article class="info-card">
+                    <div class="card-icon">∑</div>
+
+                    <h3>Python & Data</h3>
+
+                    <ul>
+                        <li>NumPy</li>
+                        <li>Pandas</li>
+                        <li>Matplotlib</li>
+                        <li>Basic data analysis</li>
+                    </ul>
+                </article>
+
+
+                <article class="info-card">
+                    <div class="card-icon">⌁</div>
+
+                    <h3>Cybersecurity & Computing</h3>
+
+                    <ul>
+                        <li>Cybersecurity fundamentals</li>
+                        <li>Ethical hacking fundamentals</li>
+                        <li>Linux</li>
+                        <li>Kali Linux</li>
+                        <li>Termux</li>
+                        <li>Virtual machines</li>
+                        <li>Basic networking concepts</li>
+                        <li>Basic information-security concepts</li>
+                    </ul>
+                </article>
+
+
+                <article class="info-card">
+                    <div class="card-icon">◈</div>
+
+                    <h3>Tools & Platforms</h3>
+
+                    <ul>
+                        <li>GitHub</li>
+                        <li>Firebase</li>
+                        <li>Acode</li>
+                        <li>VirtualBox</li>
+                    </ul>
+                </article>
+
+
+                <article class="info-card">
+                    <div class="card-icon">▣</div>
+
+                    <h3>Hardware</h3>
+
+                    <ul>
+                        <li>Raspberry Pi</li>
+                        <li>Basic computer hardware and software concepts</li>
+                    </ul>
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- KNOWLEDGE -->
+
+        <section id="knowledge" class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">04</span>
+                <div>
+                    <span class="eyebrow">MULTIDISCIPLINARY INTEREST</span>
+                    <h2>AREAS OF KNOWLEDGE & INTEREST</h2>
+                </div>
+            </div>
+
+
+            <div class="knowledge-grid">
+
+                <article class="knowledge-card">
+                    <h3>Technology & Computer Science</h3>
+
+                    <ul>
+                        <li>Cybersecurity</li>
+                        <li>Ethical Hacking</li>
+                        <li>Artificial Intelligence</li>
+                        <li>AI Security</li>
+                        <li>Information Security</li>
+                        <li>Computer Science</li>
+                        <li>Programming</li>
+                        <li>Software Development</li>
+                        <li>Web Development</li>
+                        <li>Linux</li>
+                        <li>Emerging Technologies</li>
+                    </ul>
+                </article>
+
+
+                <article class="knowledge-card">
+                    <h3>Science</h3>
+
+                    <ul>
+                        <li>General science</li>
+                        <li>Physics</li>
+                        <li>Astronomy and space science</li>
+                        <li>Cosmology</li>
+                        <li>Scientific concepts</li>
+                        <li>The relationship between science and technology</li>
+                    </ul>
+                </article>
+
+
+                <article class="knowledge-card">
+                    <h3>Philosophy & Critical Thinking</h3>
+
+                    <ul>
+                        <li>Metaphysics</li>
+                        <li>Philosophy of existence</li>
+                        <li>Consciousness</li>
+                        <li>Ethics</li>
+                        <li>Knowledge and truth</li>
+                        <li>Logic and reasoning</li>
+                        <li>Free will</li>
+                        <li>Human nature</li>
+                        <li>Meaning and purpose</li>
+                        <li>Philosophy of science</li>
+                        <li>Philosophy of artificial intelligence</li>
+                        <li>Relationship between technology and humanity</li>
+                    </ul>
+                </article>
+
+
+                <article class="knowledge-card">
+                    <h3>Psychology & Human Behavior</h3>
+
+                    <ul>
+                        <li>Human behavior</li>
+                        <li>Human motivation</li>
+                        <li>Decision-making</li>
+                        <li>Cognitive patterns</li>
+                        <li>Social behavior</li>
+                        <li>Behavioral analysis</li>
+                        <li>Psychological concepts</li>
+                    </ul>
+                </article>
+
+
+                <article class="knowledge-card">
+                    <h3>Strategy & Analytical Thinking</h3>
+
+                    <ul>
+                        <li>Strategic thinking</li>
+                        <li>Tactical reasoning</li>
+                        <li>Systems thinking</li>
+                        <li>Decision analysis</li>
+                        <li>Chess</li>
+                        <li>Competitive strategy</li>
+                        <li>Long-term planning</li>
+                    </ul>
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- VSECR -->
+
+        <section id="vsecr" class="section vsecr-section">
+
+            <div class="vsecr-glow"></div>
+
+            <div class="section-heading centered-heading">
+                <span class="section-number">05</span>
+
+                <div>
+                    <span class="eyebrow">INDEPENDENT CONCEPT</span>
+                    <h2>VSECR</h2>
+                </div>
+            </div>
+
+
+            <div class="vsecr-stage">
+
+                <div class="vsecr-cube">
+                    <div class="cube-face front"></div>
+                    <div class="cube-face back"></div>
+                    <div class="cube-face right"></div>
+                    <div class="cube-face left"></div>
+                    <div class="cube-face top"></div>
+                    <div class="cube-face bottom"></div>
+                </div>
+
+                <div class="vsecr-equation">
+                    V = L³
+                </div>
+
+            </div>
+
+
+            <div class="vsecr-content">
 
                 <h3>
-                    BCA Cybersecurity
+                    Voidspoken Self-Expanding Cube of Reality
                 </h3>
 
-                <p>
-                    Sadhanam College Pathiripala
+                <p class="vsecr-intro">
+                    VSECR is an independent conceptual and philosophical model developed under the VOIDSPOKEN identity.
                 </p>
 
                 <p>
-                    Currently pursuing first year.
+                    The model explores the nature of total reality, possible realities, time, structural expansion, and consciousness.
                 </p>
-
-            </div>
-
-        </section>
-
-
-        <section id="skills">
-
-            <h2>
-                SKILLS
-            </h2>
-
-            <div class="grid">
-
-                <div class="skill">
-                    Python
-                </div>
-
-                <div class="skill">
-                    JavaScript
-                </div>
-
-                <div class="skill">
-                    HTML
-                </div>
-
-                <div class="skill">
-                    CSS
-                </div>
-
-                <div class="skill">
-                    SQL
-                </div>
-
-                <div class="skill">
-                    Cybersecurity
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <section id="projects">
-
-            <h2>
-                PROJECTS
-            </h2>
-
-            <div class="grid">
-
-
-                <div class="project card">
-
-                    <h3>
-                        AI Auditor
-                    </h3>
-
-                    <p>
-                        A conceptual cybersecurity
-                        project focused on AI-assisted
-                        auditing and security analysis.
-                    </p>
-
-                </div>
-
-
-                <div class="project card">
-
-                    <h3>
-                        Virus Hunter
-                    </h3>
-
-                    <p>
-                        A cybersecurity project concept
-                        focused on detecting and analysing
-                        suspicious software behaviour.
-                    </p>
-
-                </div>
-
-
-                <div class="project card">
-
-                    <h3>
-                        VSECR
-                    </h3>
-
-                    <p>
-                        Voidspoken Self-Expanding Cube
-                        of Reality, a conceptual model
-                        exploring reality and possibility.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <section id="vision">
-
-            <h2>
-                VISION
-            </h2>
-
-            <div class="card">
 
                 <p>
-                    Build knowledge, create technology,
-                    explore ideas and develop systems
-                    that exist beyond conventional
-                    boundaries.
+                    At its core, VSECR proposes that total reality can be conceptually represented as a self-expanding structure containing all possible branches or configurations of existence simultaneously.
+                </p>
+
+                <p>
+                    The cube is used symbolically to represent structural completeness and capacity rather than necessarily describing a literal physical cube.
+                </p>
+
+
+                <h3>Core Concepts</h3>
+
+                <div class="concept-list">
+
+                    <div class="concept">
+                        <strong>Structural Totality</strong>
+                        <span>
+                            Reality is viewed as an all-encompassing structure rather than merely a sequence of separately created events.
+                        </span>
+                    </div>
+
+                    <div class="concept">
+                        <strong>Branch Coexistence</strong>
+                        <span>
+                            Possible realities or branches coexist within the total structure.
+                        </span>
+                    </div>
+
+                    <div class="concept">
+                        <strong>Branch Equivalence Principle (1:1:1)</strong>
+                        <span>
+                            No branch is considered fundamentally more real than another; each represents an internally consistent configuration of the whole.
+                        </span>
+                    </div>
+
+                    <div class="concept">
+                        <strong>Relative Time</strong>
+                        <span>
+                            Time is considered relative to individual branches rather than universally absolute across the entire structure.
+                        </span>
+                    </div>
+
+                    <div class="concept">
+                        <strong>Emergent Consciousness</strong>
+                        <span>
+                            Matter, life, and consciousness are considered emergent patterns resulting from increasing structural complexity within individual branches.
+                        </span>
+                    </div>
+
+                    <div class="concept">
+                        <strong>Intrinsic Expansion</strong>
+                        <span>
+                            The model proposes that the structure of reality may possess an intrinsic capacity for expansion rather than requiring an external initiating force.
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <h3>Mathematical Representation</h3>
+
+                <div class="formula-box">
+                    <div>V = L³</div>
+                    <p>
+                        where V represents the conceptual structural capacity of reality and L represents its expansion dimension.
+                    </p>
+
+                    <div>L = f(t)</div>
+
+                    <p>
+                        where f(t) represents an intrinsic expansion function.
+                    </p>
+                </div>
+
+
+                <h3>Status</h3>
+
+                <div class="status-warning">
+                    <strong>CONCEPTUAL / METAPHYSICAL MODEL</strong>
+
+                    <p>
+                        VSECR is currently presented as an independent metaphysical and philosophical framework, not an established physical theory.
+                    </p>
+
+                    <p>
+                        It currently does not provide experimentally verified predictions, a defined expansion function, or a falsifiable physical mechanism for the cube representation.
+                    </p>
+
+                    <p>
+                        The theory explores questions related to reality, possibility, time, consciousness, structure, and existence and is intended as an independent intellectual model for further philosophical and potentially scientific exploration.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- PROJECTS -->
+
+        <section id="projects" class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">06</span>
+
+                <div>
+                    <span class="eyebrow">BUILDING IDEAS</span>
+                    <h2>PROJECT & CONCEPT DEVELOPMENT</h2>
+                </div>
+            </div>
+
+
+            <div class="project-grid">
+
+                <article class="project-card">
+
+                    <span class="project-number">01</span>
+
+                    <h3>AI Auditor</h3>
+
+                    <p>
+                        A conceptual AI-powered security auditing system designed to analyze systems and identify potential security issues.
+                    </p>
+
+                    <span class="project-status">
+                        STATUS: CONCEPT / INDEPENDENT PROJECT IDEA
+                    </span>
+
+                </article>
+
+
+                <article class="project-card">
+
+                    <span class="project-number">02</span>
+
+                    <h3>Virus Hunter App</h3>
+
+                    <p>
+                        A conceptual cybersecurity application focused on detecting potentially malicious software and suspicious activity.
+                    </p>
+
+                    <span class="project-status">
+                        STATUS: CONCEPT / INDEPENDENT PROJECT IDEA
+                    </span>
+
+                </article>
+
+
+                <article class="project-card">
+
+                    <span class="project-number">03</span>
+
+                    <h3>Student Police Volunteer Initiative</h3>
+
+                    <p>
+                        Developed an independent concept for a student-based civic and drug-prevention initiative involving trained student volunteers, institutional support, reward-based participation, and cooperation with public-service departments.
+                    </p>
+
+                    <p>
+                        The concept focuses on:
+                    </p>
+
+                    <ul>
+                        <li>Youth participation</li>
+                        <li>Civic responsibility</li>
+                        <li>Public safety</li>
+                        <li>Social awareness</li>
+                        <li>Community involvement</li>
+                        <li>Drug-prevention awareness</li>
+                        <li>Leadership development</li>
+                    </ul>
+
+                    <span class="project-status">
+                        STATUS: INDEPENDENT SOCIAL INITIATIVE CONCEPT
+                    </span>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- IDENTITY -->
+
+        <section id="identity" class="section content-section identity-section">
+
+            <div class="identity-symbol">
+                V
+            </div>
+
+            <div class="identity-content">
+
+                <div class="section-heading">
+                    <span class="section-number">07</span>
+
+                    <div>
+                        <span class="eyebrow">CREATIVE IDENTITY</span>
+                        <h2>VOIDSPOKEN</h2>
+                    </div>
+                </div>
+
+                <p class="identity-lead">
+                    VOIDSPOKEN is my personal creative and technology-oriented identity.
+                </p>
+
+                <p>
+                    It represents my interests in:
+                </p>
+
+                <div class="tag-cloud">
+                    <span>Philosophy</span>
+                    <span>Science</span>
+                    <span>Writing</span>
+                    <span>Technology</span>
+                    <span>Cybersecurity</span>
+                    <span>Artificial Intelligence</span>
+                    <span>Original theories and concepts</span>
+                    <span>Creative projects</span>
+                    <span>Independent research ideas</span>
+                </div>
+
+                <p>
+                    VOIDSPOKEN serves as a space for exploring ideas that connect technology, philosophy, science, creativity, and human thought.
                 </p>
 
             </div>
 
         </section>
 
+
+        <!-- LEADERSHIP -->
+
+        <section class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">08</span>
+
+                <div>
+                    <span class="eyebrow">EXPERIENCE BEYOND CLASSROOM</span>
+                    <h2>LEADERSHIP & EXTRACURRICULAR ACTIVITIES</h2>
+                </div>
+            </div>
+
+
+            <div class="activity-grid">
+
+                <article class="activity-card">
+                    <h3>National Service Scheme (NSS)</h3>
+
+                    <ul>
+                        <li>Former NSS volunteer/leader at higher-secondary level</li>
+                        <li>Participated in multiple NSS leadership camps</li>
+                        <li>Experience in community-oriented activities</li>
+                        <li>Currently selected as a college NSS volunteer</li>
+                        <li>Interested in youth development and civic participation</li>
+                    </ul>
+                </article>
+
+
+                <article class="activity-card">
+                    <h3>Literature Club</h3>
+
+                    <p>
+                        Member of the college Literature Club with an interest in literature, writing, ideas, and creative expression.
+                    </p>
+                </article>
+
+
+                <article class="activity-card">
+                    <h3>Performing Arts</h3>
+
+                    <ul>
+                        <li>Singing</li>
+                        <li>Interest in music</li>
+                        <li>Stage performances</li>
+                        <li>Participation in college cultural activities</li>
+                    </ul>
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- CORE SKILLS -->
+
+        <section class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">09</span>
+
+                <div>
+                    <span class="eyebrow">PERSONAL CAPABILITIES</span>
+                    <h2>CORE SKILLS</h2>
+                </div>
+            </div>
+
+
+            <div class="skill-cloud">
+
+                <span>Analytical thinking</span>
+                <span>Critical thinking</span>
+                <span>Strategic thinking</span>
+                <span>Problem solving</span>
+                <span>Creative thinking</span>
+                <span>Independent learning</span>
+                <span>Research-oriented thinking</span>
+                <span>Observation</span>
+                <span>Concept development</span>
+                <span>Systems thinking</span>
+                <span>Knowledge sharing</span>
+                <span>Teaching and explanation</span>
+                <span>Communication</span>
+                <span>Adaptability</span>
+                <span>Technology exploration</span>
+                <span>Team participation</span>
+
+            </div>
+
+        </section>
+
+
+        <!-- LANGUAGES -->
+
+        <section class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">10</span>
+
+                <div>
+                    <span class="eyebrow">LANGUAGE</span>
+                    <h2>LANGUAGES</h2>
+                </div>
+            </div>
+
+
+            <div class="language-grid">
+
+                <div class="language-card">
+                    <span>01</span>
+                    <h3>Malayalam</h3>
+                    <p>Native</p>
+                </div>
+
+                <div class="language-card">
+                    <span>02</span>
+                    <h3>English</h3>
+                    <p>Developing advanced proficiency</p>
+                </div>
+
+                <div class="language-card">
+                    <span>03</span>
+                    <h3>German</h3>
+                    <p>Planned learning</p>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- DEVELOPMENT GOALS -->
+
+        <section class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">11</span>
+
+                <div>
+                    <span class="eyebrow">CURRENT DIRECTION</span>
+                    <h2>CURRENT DEVELOPMENT GOALS</h2>
+                </div>
+            </div>
+
+
+            <div class="goal-list">
+
+                <div>Strengthening programming fundamentals</div>
+                <div>Improving Python and SQL</div>
+                <div>Developing Linux and networking knowledge</div>
+                <div>Building cybersecurity fundamentals</div>
+                <div>Learning ethical hacking systematically</div>
+                <div>Developing practical technical projects</div>
+                <div>Building a GitHub portfolio</div>
+                <div>Exploring artificial intelligence and AI security</div>
+                <div>Improving communication skills</div>
+                <div>Developing research and analytical abilities</div>
+                <div>Expanding knowledge of science and philosophy</div>
+
+            </div>
+
+        </section>
+
+
+        <!-- FUTURE ACADEMIC GOALS -->
+
+        <section class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">12</span>
+
+                <div>
+                    <span class="eyebrow">THE NEXT LEVEL</span>
+                    <h2>FUTURE ACADEMIC GOALS</h2>
+                </div>
+            </div>
+
+
+            <div class="future-card">
+
+                <span class="future-label">POSTGRADUATE GOAL</span>
+
+                <h3>Master of Computer Applications (MCA)</h3>
+
+                <p>Areas of potential specialization include:</p>
+
+                <div class="mini-tags">
+                    <span>Cybersecurity</span>
+                    <span>Computer Science</span>
+                    <span>Artificial Intelligence</span>
+                    <span>Information Security</span>
+                    <span>AI Security</span>
+                </div>
+
+
+                <h3>Long-Term Research Interests</h3>
+
+                <ul>
+                    <li>AI Systems Security</li>
+                    <li>Cybersecurity</li>
+                    <li>Artificial Intelligence</li>
+                    <li>Information Security</li>
+                    <li>Secure AI Systems</li>
+                    <li>Emerging cybersecurity technologies</li>
+                    <li>Artificial intelligence and consciousness</li>
+                    <li>Philosophy of technology</li>
+                    <li>Computational approaches to complex systems</li>
+                </ul>
+
+            </div>
+
+        </section>
+
+
+        <!-- CAREER -->
+
+        <section class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">13</span>
+
+                <div>
+                    <span class="eyebrow">FUTURE DIRECTIONS</span>
+                    <h2>FUTURE CAREER DIRECTIONS</h2>
+                </div>
+            </div>
+
+
+            <div class="career-grid">
+
+                <div>Cybersecurity Professional</div>
+                <div>Ethical Hacker</div>
+                <div>Security Researcher</div>
+                <div>AI Security Researcher</div>
+                <div>Computer Science Researcher</div>
+                <div>Cybersecurity Educator</div>
+                <div>Computer Science Educator</div>
+                <div>Academic Researcher</div>
+                <div>Technology Researcher</div>
+                <div>AI Researcher</div>
+                <div>Technology Entrepreneur</div>
+
+            </div>
+
+            <p class="small-note">
+                These are future career directions and aspirations, not current professional positions.
+            </p>
+
+        </section>
+
+
+        <!-- ENTREPRENEURIAL -->
+
+        <section class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">14</span>
+
+                <div>
+                    <span class="eyebrow">BUILDING THE FUTURE</span>
+                    <h2>FUTURE ENTREPRENEURIAL INTERESTS</h2>
+                </div>
+            </div>
+
+
+            <div class="text-card">
+
+                <p>
+                    Interested in eventually developing technology products and potentially establishing a technology-focused business under the VD Enterprises / VD Voidspoken concept.
+                </p>
+
+                <p>
+                    Potential areas of future exploration include:
+                </p>
+
+                <div class="mini-tags">
+                    <span>Artificial Intelligence</span>
+                    <span>Cybersecurity</span>
+                    <span>Software products</span>
+                    <span>Security tools</span>
+                    <span>AI-based auditing</span>
+                    <span>Technology services</span>
+                    <span>Educational technology</span>
+                    <span>Research and innovation</span>
+                </div>
+
+                <p class="small-note">
+                    Current status: Future interest and aspiration.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- ACHIEVEMENTS -->
+
+        <section class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">15</span>
+
+                <div>
+                    <span class="eyebrow">MILESTONES</span>
+                    <h2>ACHIEVEMENTS & HIGHLIGHTS</h2>
+                </div>
+            </div>
+
+
+            <div class="achievement-list">
+
+                <div>93.4% in SSLC</div>
+                <div>Completed VHSE Junior Software Development</div>
+                <div>Currently pursuing BCA Cybersecurity</div>
+                <div>Former NSS volunteer/leader</div>
+                <div>Participated in multiple NSS leadership camps</div>
+                <div>Current college NSS volunteer</div>
+                <div>Member of college Literature Club</div>
+                <div>Experience with Python, SQL, NumPy, Pandas, and Matplotlib</div>
+                <div>Exposure to Linux, Kali Linux, Termux, and virtual machines</div>
+                <div>Developed independent cybersecurity and technology concepts</div>
+                <div>Developed the VSECR philosophical/conceptual model</div>
+                <div>Developed an independent student civic initiative concept</div>
+                <div>Building the VOIDSPOKEN creative and technology identity</div>
+
+            </div>
+
+        </section>
+
+
+        <!-- HOBBIES -->
+
+        <section class="section content-section">
+
+            <div class="section-heading">
+                <span class="section-number">16</span>
+
+                <div>
+                    <span class="eyebrow">OUTSIDE THE SYSTEM</span>
+                    <h2>HOBBIES & PERSONAL INTERESTS</h2>
+                </div>
+            </div>
+
+
+            <div class="hobby-grid">
+
+                <article>
+                    <h3>Intellectual</h3>
+
+                    <ul>
+                        <li>Philosophy</li>
+                        <li>Science</li>
+                        <li>Astronomy</li>
+                        <li>Artificial Intelligence</li>
+                        <li>Cybersecurity</li>
+                        <li>Psychology</li>
+                        <li>Strategy</li>
+                        <li>Chess</li>
+                        <li>Reading</li>
+                        <li>Writing</li>
+                    </ul>
+                </article>
+
+
+                <article>
+                    <h3>Creative</h3>
+
+                    <ul>
+                        <li>Creative writing</li>
+                        <li>Music</li>
+                        <li>Singing</li>
+                        <li>Anime</li>
+                        <li>Fiction</li>
+                        <li>Philosophical concepts</li>
+                        <li>Thought experiments</li>
+                    </ul>
+                </article>
+
+
+                <article>
+                    <h3>Physical & Recreation</h3>
+
+                    <ul>
+                        <li>Badminton</li>
+                        <li>Sports</li>
+                        <li>Sports cars</li>
+                    </ul>
+                </article>
+
+
+                <article>
+                    <h3>Technology & Business</h3>
+
+                    <ul>
+                        <li>Technology exploration</li>
+                        <li>Entrepreneurship</li>
+                        <li>Business</li>
+                        <li>Innovation</li>
+                        <li>Technology startups</li>
+                        <li>Product development</li>
+                        <li>Strategic planning</li>
+                    </ul>
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- PERSONAL INTEREST PROFILE -->
+
+        <section class="section content-section profile-map">
+
+            <div class="section-heading">
+                <span class="section-number">17</span>
+
+                <div>
+                    <span class="eyebrow">HOW THE FIELDS CONNECT</span>
+                    <h2>PERSONAL INTEREST PROFILE</h2>
+                </div>
+            </div>
+
+
+            <div class="connection-grid">
+
+                <div class="connection-center">
+                    VOIDSPOKEN
+                </div>
+
+                <div class="connection-node n1">TECHNOLOGY</div>
+                <div class="connection-node n2">SCIENCE</div>
+                <div class="connection-node n3">PHILOSOPHY</div>
+                <div class="connection-node n4">PSYCHOLOGY</div>
+                <div class="connection-node n5">STRATEGY</div>
+                <div class="connection-node n6">CREATIVITY</div>
+
+            </div>
+
+
+            <div class="text-card">
+
+                <p>
+                    I am interested in connecting different fields rather than limiting myself to a single discipline.
+                </p>
+
+                <p>
+                    Technology provides tools for creation and problem solving.
+                </p>
+
+                <p>
+                    Science provides methods for understanding the natural world.
+                </p>
+
+                <p>
+                    Philosophy encourages questions about existence, knowledge, consciousness, and reality.
+                </p>
+
+                <p>
+                    Psychology provides insight into human behavior and decision-making.
+                </p>
+
+                <p>
+                    Strategy develops planning, adaptation, and systems thinking.
+                </p>
+
+                <p>
+                    Creativity provides a way to explore and communicate ideas.
+                </p>
+
+                <p>
+                    This multidisciplinary approach influences the way I learn, think, and develop independent concepts.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- VISION -->
+
+        <section id="vision" class="section vision-section">
+
+            <div class="vision-background-text">
+                FUTURE
+            </div>
+
+            <div class="vision-content">
+
+                <span class="eyebrow">LONG-TERM VISION</span>
+
+                <h2>
+                    BCA CYBERSECURITY
+                    <span>→</span>
+                    MCA
+                    <span>→</span>
+                    ADVANCED RESEARCH
+                    <span>→</span>
+                    CYBERSECURITY & AI SYSTEMS
+                    <span>→</span>
+                    RESEARCH & KNOWLEDGE SHARING
+                    <span>→</span>
+                    FUTURE TECHNOLOGY ENTREPRENEURSHIP
+                </h2>
+
+                <p>
+                    The long-term objective is to develop strong technical expertise while continuing to explore science, philosophy, artificial intelligence, cybersecurity, human behavior, research, creativity, and technology, eventually combining these interests into meaningful technical and intellectual work.
+                </p>
+
+                <div class="final-mark">
+                    <span>V</span>
+                    <strong>VOIDSPOKEN</strong>
+                </div>
+
+            </div>
+
+        </section>
 
     </main>
 
 
-    <!-- =========================================
+    <!-- =========================
          FOOTER
-         ========================================= -->
+    ========================== -->
 
     <footer>
 
-        <p>
-            VOIDSPOKEN
-        </p>
+        <div class="footer-logo">
+            V
+        </div>
+
+        <h3>VOIDSPOKEN</h3>
 
         <p>
-            Reality is only the surface.
+            Technology · Science · Philosophy · Cybersecurity · Ideas
         </p>
+
+        <span>
+            © 2026 Navaneeth Krishnan M.K.
+        </span>
 
     </footer>
 
 
-    <!-- =========================================
-         JAVASCRIPT
-         ========================================= -->
+    <!-- BACK TO TOP -->
+
+    <button id="back-top" aria-label="Back to top">
+        ↑
+    </button>
+
+
+    <!-- GSAP -->
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+
+    <!-- THREE.JS -->
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.min.js"></script>
+
+    <!-- YOUR JAVASCRIPT -->
 
     <script src="script.js"></script>
 
-
 </body>
-
 </html>
