@@ -1,6 +1,6 @@
 /* =========================================================
    VOIDSPOKEN
-   FRESH JAVASCRIPT
+   ANIME BATTLE ENGINE
    ========================================================= */
 
 
@@ -8,86 +8,17 @@
    BASIC
    ========================================================= */
 
-const body = document.body;
+const body =
+    document.body;
 
 
 /* =========================================================
-   BACKGROUND MUSIC
-   intro.mp3
-   Starts ONLY after first user interaction
-   ========================================================= */
-
-const introAudio =
-    document.getElementById("intro-audio");
-
-
-introAudio.volume = 0.35;
-
-let musicStarted = false;
-
-
-function startMusic() {
-
-    if (musicStarted) {
-        return;
-    }
-
-
-    const playPromise =
-        introAudio.play();
-
-
-    if (playPromise !== undefined) {
-
-        playPromise
-            .then(() => {
-
-                musicStarted = true;
-
-                console.log(
-                    "VOIDSPOKEN: intro.mp3 PLAYING"
-                );
-
-            })
-            .catch(error => {
-
-                console.error(
-                    "VOIDSPOKEN: MUSIC ERROR",
-                    error
-                );
-
-            });
-
-    }
-
-}
-
-
-/*
-   First tap/click anywhere.
-
-   This listener is attached directly to
-   document so it works even if the user
-   taps empty space.
-*/
-
-document.addEventListener(
-    "pointerdown",
-    startMusic,
-    {
-        once: true
-    }
-);
-
-
-/* =========================================================
-   HOVER SOUND
-   hover.mp3
+   HOVER SOUND ONLY
    ========================================================= */
 
 const hoverSounds = [];
 
-const HOVER_COUNT = 5;
+const HOVER_COUNT = 6;
 
 
 for (
@@ -96,13 +27,18 @@ for (
     i++
 ) {
 
-    const audio =
+    const sound =
         new Audio("./hover.mp3");
 
-    audio.preload = "auto";
-    audio.volume = 0.35;
+    sound.preload =
+        "auto";
 
-    hoverSounds.push(audio);
+    sound.volume =
+        0.35;
+
+    hoverSounds.push(
+        sound
+    );
 
 }
 
@@ -112,7 +48,7 @@ let hoverIndex = 0;
 
 function playHoverSound() {
 
-    const audio =
+    const sound =
         hoverSounds[hoverIndex];
 
 
@@ -121,119 +57,29 @@ function playHoverSound() {
         hoverSounds.length;
 
 
-    audio.currentTime = 0;
+    try {
 
+        sound.currentTime =
+            0;
 
-    const promise =
-        audio.play();
+        const promise =
+            sound.play();
 
+        if (promise) {
 
-    if (promise !== undefined) {
+            promise.catch(
+                () => {}
+            );
 
-        promise.catch(() => {});
+        }
 
-    }
+    } catch (error) {}
 
 }
 
 
 /* =========================================================
-   INTERACTIVE ELEMENTS
-   ========================================================= */
-
-const interactiveElements =
-    document.querySelectorAll(
-        "a, button, .card, .skill, .project"
-    );
-
-
-interactiveElements.forEach(
-    element => {
-
-
-        /* Desktop */
-
-        element.addEventListener(
-            "pointerenter",
-            event => {
-
-                if (
-                    event.pointerType ===
-                    "mouse"
-                ) {
-
-                    playHoverSound();
-
-                }
-
-            }
-        );
-
-
-        /* Mobile */
-
-        element.addEventListener(
-            "pointerdown",
-            event => {
-
-                if (
-                    event.pointerType !==
-                    "mouse"
-                ) {
-
-                    playHoverSound();
-
-                }
-
-            }
-        );
-
-    }
-);
-
-
-/* =========================================================
-   RIPPLE EFFECT
-   ========================================================= */
-
-document.addEventListener(
-    "pointerdown",
-    event => {
-
-        const ripple =
-            document.createElement("div");
-
-
-        ripple.className =
-            "void-ripple";
-
-
-        ripple.style.left =
-            event.clientX + "px";
-
-
-        ripple.style.top =
-            event.clientY + "px";
-
-
-        body.appendChild(ripple);
-
-
-        setTimeout(
-            () => {
-
-                ripple.remove();
-
-            },
-            800
-        );
-
-    }
-);
-
-
-/* =========================================================
-   INTRO ANIMATION
+   INTRO
    ========================================================= */
 
 const intro =
@@ -257,10 +103,558 @@ setTimeout(
 setTimeout(
     () => {
 
-        intro.remove();
+        if (intro) {
+
+            intro.remove();
+
+        }
 
     },
     4800
+);
+
+
+/* =========================================================
+   INTERACTIVE ELEMENTS
+   ========================================================= */
+
+const interactive =
+    document.querySelectorAll(
+        "a, button, .card, .skill, .project"
+    );
+
+
+interactive.forEach(
+    element => {
+
+
+        element.addEventListener(
+            "pointerenter",
+            event => {
+
+                if (
+                    event.pointerType ===
+                    "mouse"
+                ) {
+
+                    playHoverSound();
+
+                }
+
+            }
+        );
+
+
+        element.addEventListener(
+            "pointerdown",
+            event => {
+
+                if (
+                    event.pointerType !==
+                    "mouse"
+                ) {
+
+                    playHoverSound();
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   ANIME BATTLE SYSTEM
+   ========================================================= */
+
+const battle =
+    document.getElementById(
+        "anime-battle"
+    );
+
+
+const speedLines =
+    document.getElementById(
+        "speed-lines"
+    );
+
+
+const battleParticles =
+    document.getElementById(
+        "battle-particles"
+    );
+
+
+const slashLayer =
+    document.getElementById(
+        "slash-layer"
+    );
+
+
+const impactLayer =
+    document.getElementById(
+        "impact-layer"
+    );
+
+
+const energyLayer =
+    document.getElementById(
+        "energy-layer"
+    );
+
+
+/* =========================================================
+   RANDOM POSITION
+   ========================================================= */
+
+function randomPosition() {
+
+    return {
+
+        x:
+            Math.random() *
+            window.innerWidth,
+
+        y:
+            Math.random() *
+            window.innerHeight
+
+    };
+
+}
+
+
+/* =========================================================
+   ENERGY PARTICLES
+   ========================================================= */
+
+function createBattleParticle() {
+
+    const particle =
+        document.createElement(
+            "span"
+        );
+
+
+    particle.className =
+        "battle-particle";
+
+
+    const position =
+        randomPosition();
+
+
+    particle.style.left =
+        position.x + "px";
+
+
+    particle.style.top =
+        position.y + "px";
+
+
+    particle.style.animationDuration =
+        (
+            Math.random() * 2 +
+            1
+        ) + "s";
+
+
+    particle.style.animationDelay =
+        (
+            Math.random() * 2
+        ) + "s";
+
+
+    battleParticles.appendChild(
+        particle
+    );
+
+
+    setTimeout(
+        () => {
+
+            particle.remove();
+
+        },
+        4000
+    );
+
+}
+
+
+for (
+    let i = 0;
+    i < 80;
+    i++
+) {
+
+    createBattleParticle();
+
+}
+
+
+setInterval(
+    () => {
+
+        createBattleParticle();
+
+    },
+    180
+);
+
+
+/* =========================================================
+   SPEED LINE
+   ========================================================= */
+
+function createSpeedLine() {
+
+    const line =
+        document.createElement(
+            "span"
+        );
+
+
+    line.className =
+        "anime-speed-line";
+
+
+    line.style.top =
+        Math.random() *
+        100 +
+        "%";
+
+
+    line.style.left =
+        (
+            Math.random() *
+            120
+        ) -
+        20 +
+        "%";
+
+
+    line.style.animationDuration =
+        (
+            Math.random() *
+            0.7 +
+            0.35
+        ) +
+        "s";
+
+
+    speedLines.appendChild(
+        line
+    );
+
+
+    setTimeout(
+        () => {
+
+            line.remove();
+
+        },
+        1500
+    );
+
+}
+
+
+setInterval(
+    () => {
+
+        if (
+            Math.random() <
+            0.7
+        ) {
+
+            createSpeedLine();
+
+        }
+
+    },
+    140
+);
+
+
+/* =========================================================
+   ENERGY WAVE
+   ========================================================= */
+
+function createEnergyWave(
+    x,
+    y
+) {
+
+    const wave =
+        document.createElement(
+            "div"
+        );
+
+
+    wave.className =
+        "anime-energy-wave";
+
+
+    wave.style.left =
+        x + "px";
+
+
+    wave.style.top =
+        y + "px";
+
+
+    energyLayer.appendChild(
+        wave
+    );
+
+
+    setTimeout(
+        () => {
+
+            wave.remove();
+
+        },
+        1000
+    );
+
+}
+
+
+/* =========================================================
+   SLASH ATTACK
+   ========================================================= */
+
+function createAnimeSlash() {
+
+    const slash =
+        document.createElement(
+            "div"
+        );
+
+
+    slash.className =
+        "anime-slash";
+
+
+    const fromLeft =
+        Math.random() <
+        0.5;
+
+
+    slash.style.top =
+        (
+            Math.random() *
+            90 +
+            5
+        ) +
+        "%";
+
+
+    if (fromLeft) {
+
+        slash.style.left =
+            "-20%";
+
+        slash.classList.add(
+            "slash-left"
+        );
+
+    } else {
+
+        slash.style.left =
+            "120%";
+
+        slash.classList.add(
+            "slash-right"
+        );
+
+    }
+
+
+    slashLayer.appendChild(
+        slash
+    );
+
+
+    setTimeout(
+        () => {
+
+            slash.remove();
+
+        },
+        900
+    );
+
+}
+
+
+/* =========================================================
+   IMPACT FLASH
+   ========================================================= */
+
+function createImpact(
+    x,
+    y
+) {
+
+    const impact =
+        document.createElement(
+            "div"
+        );
+
+
+    impact.className =
+        "anime-impact";
+
+
+    impact.style.left =
+        x + "px";
+
+
+    impact.style.top =
+        y + "px";
+
+
+    impactLayer.appendChild(
+        impact
+    );
+
+
+    setTimeout(
+        () => {
+
+            impact.remove();
+
+        },
+        800
+    );
+
+}
+
+
+/* =========================================================
+   BIG ATTACK
+   ========================================================= */
+
+function animeAttack() {
+
+    const x =
+        Math.random() *
+        window.innerWidth;
+
+
+    const y =
+        Math.random() *
+        window.innerHeight;
+
+
+    createImpact(
+        x,
+        y
+    );
+
+
+    createEnergyWave(
+        x,
+        y
+    );
+
+
+    createAnimeSlash();
+
+
+    setTimeout(
+        () => {
+
+            createAnimeSlash();
+
+        },
+        120
+    );
+
+
+    setTimeout(
+        () => {
+
+            createEnergyWave(
+                Math.random() *
+                window.innerWidth,
+
+                Math.random() *
+                window.innerHeight
+            );
+
+        },
+        200
+    );
+
+}
+
+
+/* =========================================================
+   RANDOM FIGHT SEQUENCE
+   ========================================================= */
+
+setInterval(
+    () => {
+
+        if (
+            Math.random() <
+            0.55
+        ) {
+
+            animeAttack();
+
+        }
+
+    },
+    2400
+);
+
+
+/* =========================================================
+   USER TAP = IMPACT
+   ========================================================= */
+
+document.addEventListener(
+    "pointerdown",
+    event => {
+
+        createImpact(
+            event.clientX,
+            event.clientY
+        );
+
+
+        createEnergyWave(
+            event.clientX,
+            event.clientY
+        );
+
+    }
+);
+
+
+/* =========================================================
+   DOUBLE TAP = SLASH
+   ========================================================= */
+
+document.addEventListener(
+    "dblclick",
+    event => {
+
+        createAnimeSlash();
+
+
+        createImpact(
+            event.clientX,
+            event.clientY
+        );
+
+    }
 );
 
 
@@ -296,7 +690,7 @@ const observer =
 
         },
         {
-            threshold: 0.15
+            threshold: 0.12
         }
     );
 
@@ -355,6 +749,12 @@ navLinks.forEach(
 
 
                 playHoverSound();
+
+
+                createImpact(
+                    window.innerWidth / 2,
+                    window.innerHeight / 2
+                );
 
             }
         );
@@ -438,7 +838,6 @@ const cards =
 cards.forEach(
     card => {
 
-
         card.addEventListener(
             "pointermove",
             event => {
@@ -465,22 +864,22 @@ cards.forEach(
                     rect.top;
 
 
-                const centerX =
-                    rect.width / 2;
-
-
-                const centerY =
-                    rect.height / 2;
-
-
                 const rotateX =
-                    ((y - centerY) /
-                    centerY) * -4;
+                    (
+                        (y -
+                        rect.height / 2) /
+                        (rect.height / 2)
+                    ) *
+                    -4;
 
 
                 const rotateY =
-                    ((x - centerX) /
-                    centerX) * 4;
+                    (
+                        (x -
+                        rect.width / 2) /
+                        (rect.width / 2)
+                    ) *
+                    4;
 
 
                 card.style.transform =
@@ -508,8 +907,129 @@ cards.forEach(
 
 
 /* =========================================================
+   SCROLL PROGRESS
+   ========================================================= */
+
+const progress =
+    document.createElement(
+        "div"
+    );
+
+
+progress.id =
+    "void-progress";
+
+
+body.appendChild(
+    progress
+);
+
+
+function updateProgress() {
+
+    const max =
+        document.documentElement
+            .scrollHeight -
+        window.innerHeight;
+
+
+    const percentage =
+        max > 0
+            ? (
+                window.scrollY /
+                max
+            ) * 100
+            : 0;
+
+
+    progress.style.width =
+        percentage + "%";
+
+}
+
+
+window.addEventListener(
+    "scroll",
+    updateProgress,
+    {
+        passive: true
+    }
+);
+
+
+updateProgress();
+
+
+/* =========================================================
+   BACK TO TOP
+   ========================================================= */
+
+const topButton =
+    document.createElement(
+        "button"
+    );
+
+
+topButton.id =
+    "void-top";
+
+
+topButton.innerHTML =
+    "↑";
+
+
+topButton.setAttribute(
+    "aria-label",
+    "Back to top"
+);
+
+
+body.appendChild(
+    topButton
+);
+
+
+topButton.addEventListener(
+    "click",
+    () => {
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+
+        playHoverSound();
+
+
+        createImpact(
+            window.innerWidth / 2,
+            window.innerHeight / 2
+        );
+
+    }
+);
+
+
+window.addEventListener(
+    "scroll",
+    () => {
+
+        topButton.classList.toggle(
+            "show",
+            window.scrollY > 500
+        );
+
+    },
+    {
+        passive: true
+    }
+);
+
+
+/* =========================================================
    VOID MODE
-   Type VOID on keyboard
+   Type VOID
    ========================================================= */
 
 let typed =
@@ -521,7 +1041,8 @@ document.addEventListener(
     event => {
 
         if (
-            event.key.length !== 1
+            event.key.length !==
+            1
         ) {
             return;
         }
@@ -536,7 +1057,8 @@ document.addEventListener(
 
 
         if (
-            typed === "VOID"
+            typed ===
+            "VOID"
         ) {
 
             body.classList.add(
@@ -544,13 +1066,22 @@ document.addEventListener(
             );
 
 
-            createExplosion(
-                window.innerWidth / 2,
-                window.innerHeight / 2
-            );
+            for (
+                let i = 0;
+                i < 5;
+                i++
+            ) {
 
+                setTimeout(
+                    () => {
 
-            playHoverSound();
+                        animeAttack();
+
+                    },
+                    i * 180
+                );
+
+            }
 
 
             setTimeout(
@@ -565,7 +1096,8 @@ document.addEventListener(
             );
 
 
-            typed = "";
+            typed =
+                "";
 
         }
 
@@ -574,8 +1106,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   MOBILE VOID MODE
-   Hold screen for 1.2 seconds
+   MOBILE LONG PRESS
    ========================================================= */
 
 let holdTimer =
@@ -603,13 +1134,22 @@ document.addEventListener(
                     );
 
 
-                    createExplosion(
-                        event.clientX,
-                        event.clientY
-                    );
+                    for (
+                        let i = 0;
+                        i < 6;
+                        i++
+                    ) {
 
+                        setTimeout(
+                            () => {
 
-                    playHoverSound();
+                                animeAttack();
+
+                            },
+                            i * 160
+                        );
+
+                    }
 
 
                     setTimeout(
@@ -656,140 +1196,6 @@ document.addEventListener(
 
 
 /* =========================================================
-   EXPLOSION
-   ========================================================= */
-
-function createExplosion(
-    x,
-    y
-) {
-
-    const explosion =
-        document.createElement("div");
-
-
-    explosion.className =
-        "void-explosion";
-
-
-    explosion.style.left =
-        x + "px";
-
-
-    explosion.style.top =
-        y + "px";
-
-
-    body.appendChild(
-        explosion
-    );
-
-
-    setTimeout(
-        () => {
-
-            explosion.remove();
-
-        },
-        1000
-    );
-
-}
-
-
-/* =========================================================
-   RANDOM GLITCH
-   ========================================================= */
-
-setInterval(
-    () => {
-
-        if (
-            Math.random() <
-            0.25
-        ) {
-
-            const glitch =
-                document.createElement("div");
-
-
-            glitch.className =
-                "void-glitch";
-
-
-            body.appendChild(
-                glitch
-            );
-
-
-            setTimeout(
-                () => {
-
-                    glitch.remove();
-
-                },
-                450
-            );
-
-        }
-
-    },
-    5000
-);
-
-
-/* =========================================================
-   SCROLL PROGRESS
-   ========================================================= */
-
-const progress =
-    document.createElement("div");
-
-
-progress.id =
-    "void-progress";
-
-
-body.appendChild(
-    progress
-);
-
-
-function updateProgress() {
-
-    const maxScroll =
-        document.documentElement.scrollHeight -
-        window.innerHeight;
-
-
-    const percentage =
-        maxScroll > 0
-            ? (
-                window.scrollY /
-                maxScroll
-            ) * 100
-            : 0;
-
-
-    progress.style.width =
-        percentage + "%";
-
-}
-
-
-window.addEventListener(
-    "scroll",
-    updateProgress,
-    {
-        passive: true
-    }
-);
-
-
-updateProgress();
-
-
-/* =========================================================
    CONSOLE
    ========================================================= */
 
@@ -799,11 +1205,11 @@ console.log(
 );
 
 console.log(
-    "%cReality is only the surface.",
-    "color:#888;font-size:13px;"
+    "%cANIME BATTLE SYSTEM ONLINE",
+    "color:#ff4444;font-size:12px;"
 );
 
 console.log(
-    "%cThe Void is listening.",
-    "color:#aa0000;font-size:12px;"
+    "%cReality is only the surface.",
+    "color:#888;font-size:13px;"
 );
