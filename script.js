@@ -3,17 +3,12 @@
    FULL SCRIPT
    ========================================================= */
 
-
-/* =========================================================
-   BASIC SETUP
-   ========================================================= */
-
 const body = document.body;
 
 
 /* =========================================================
-   AUDIO FILES
-   Both files are in the same folder as index.html
+   AUDIO
+   intro.mp3 and hover.mp3 are beside index.html
    ========================================================= */
 
 const BACKGROUND_AUDIO_SRC = "./intro.mp3";
@@ -23,20 +18,18 @@ const HOVER_AUDIO_SRC = "./hover.mp3";
 /* =========================================================
    BACKGROUND MUSIC
    NO AUTOPLAY
-   Starts only after first touch/click anywhere
+   Starts after first user interaction
    ========================================================= */
 
-const backgroundAudio =
-    new Audio(BACKGROUND_AUDIO_SRC);
+const backgroundAudio = document.createElement("audio");
 
+backgroundAudio.src = BACKGROUND_AUDIO_SRC;
 backgroundAudio.loop = true;
-backgroundAudio.volume = 0.35;
 backgroundAudio.preload = "auto";
+backgroundAudio.volume = 0.35;
+backgroundAudio.setAttribute("playsinline", "");
 
-backgroundAudio.setAttribute(
-    "playsinline",
-    ""
-);
+body.appendChild(backgroundAudio);
 
 let musicStarted = false;
 
@@ -53,18 +46,16 @@ function startBackgroundMusic() {
             musicStarted = true;
 
             console.log(
-                "VOIDSPOKEN: background music started"
+                "VOIDSPOKEN: intro.mp3 started"
             );
 
         })
         .catch(error => {
 
             console.error(
-                "VOIDSPOKEN: background music failed",
+                "VOIDSPOKEN: intro.mp3 failed",
                 error
             );
-
-            musicStarted = false;
 
         });
 
@@ -72,47 +63,34 @@ function startBackgroundMusic() {
 
 
 /*
- * ANY touch / click / pointer interaction
- * anywhere on the page starts intro.mp3
- *
- * There is intentionally NO:
- *
- * startBackgroundMusic();
- *
- * here.
- */
+   Any first touch/click starts the music.
+*/
 
 document.addEventListener(
     "pointerdown",
     startBackgroundMusic,
     {
-        once: true,
-        passive: true
+        once: true
     }
 );
 
 
 /* =========================================================
-   HOVER SOUND
-   Multiple audio instances allow overlap
+   HOVER / TOUCH SOUND
    ========================================================= */
 
 const hoverSounds = [];
 
 for (let i = 0; i < 6; i++) {
 
-    const sound =
-        new Audio(HOVER_AUDIO_SRC);
+    const sound = new Audio(HOVER_AUDIO_SRC);
 
     sound.preload = "auto";
     sound.volume = 0.35;
-
-    sound.setAttribute(
-        "playsinline",
-        ""
-    );
+    sound.setAttribute("playsinline", "");
 
     hoverSounds.push(sound);
+
 }
 
 
@@ -189,15 +167,13 @@ body.prepend(intro);
 
 
 /* =========================================================
-   SAHASRARA / VOID CHAKRA
+   VOID CHAKRA
    ========================================================= */
 
 function createChakra() {
 
     if (
-        document.getElementById(
-            "void-chakra"
-        )
+        document.getElementById("void-chakra")
     ) {
         return;
     }
@@ -231,61 +207,37 @@ function createChakra() {
     `;
 
 
-    body.appendChild(
-        chakra
-    );
+    body.appendChild(chakra);
 
 
     const outer =
-        chakra.querySelector(
-            "#chakra-outer"
-        );
-
+        chakra.querySelector("#chakra-outer");
 
     const inner =
-        chakra.querySelector(
-            "#chakra-inner"
-        );
+        chakra.querySelector("#chakra-inner");
 
 
-    /* Outer petals */
-
-    for (
-        let i = 0;
-        i < 32;
-        i++
-    ) {
+    for (let i = 0; i < 32; i++) {
 
         const petal =
             document.createElement("div");
 
         petal.className =
             "void-chakra-petal";
-
 
         const angle =
             i * (360 / 32);
 
-
         petal.style.transform =
             `translate(-50%, -100%)
              rotate(${angle}deg)`;
 
-
-        outer.appendChild(
-            petal
-        );
+        outer.appendChild(petal);
 
     }
 
 
-    /* Inner petals */
-
-    for (
-        let i = 0;
-        i < 16;
-        i++
-    ) {
+    for (let i = 0; i < 16; i++) {
 
         const petal =
             document.createElement("div");
@@ -293,19 +245,14 @@ function createChakra() {
         petal.className =
             "void-chakra-petal";
 
-
         const angle =
             i * (360 / 16) + 11.25;
-
 
         petal.style.transform =
             `translate(-50%, -100%)
              rotate(${angle}deg)`;
 
-
-        inner.appendChild(
-            petal
-        );
+        inner.appendChild(petal);
 
     }
 
@@ -440,11 +387,7 @@ function createParticle() {
 }
 
 
-for (
-    let i = 0;
-    i < 60;
-    i++
-) {
+for (let i = 0; i < 60; i++) {
 
     createParticle();
 
@@ -459,7 +402,7 @@ setInterval(() => {
 
 
 /* =========================================================
-   INTERACTIVE ELEMENT SOUNDS
+   INTERACTIVE SOUNDS
    ========================================================= */
 
 const soundTargets =
@@ -468,59 +411,47 @@ const soundTargets =
     );
 
 
-soundTargets.forEach(
-    element => {
+soundTargets.forEach(element => {
 
+    element.addEventListener(
+        "pointerenter",
+        event => {
 
-        /* Desktop hover */
+            if (
+                event.pointerType === "mouse"
+            ) {
 
-        element.addEventListener(
-            "pointerenter",
-            event => {
-
-                if (
-                    event.pointerType ===
-                    "mouse"
-                ) {
-
-                    playHoverSound();
-
-                }
+                playHoverSound();
 
             }
-        );
+
+        }
+    );
 
 
-        /* Mobile touch */
+    element.addEventListener(
+        "pointerdown",
+        event => {
 
-        element.addEventListener(
-            "pointerdown",
-            event => {
+            if (
+                event.pointerType !== "mouse"
+            ) {
 
-                if (
-                    event.pointerType !==
-                    "mouse"
-                ) {
-
-                    playHoverSound();
-
-                }
+                playHoverSound();
 
             }
-        );
 
-    }
-);
+        }
+    );
+
+});
 
 
 /* =========================================================
-   RIPPLE EFFECT
+   RIPPLE
    ========================================================= */
 
-function createRipple(
-    x,
-    y
-) {
+function createRipple(x, y) {
 
     const ripple =
         document.createElement("div");
@@ -528,17 +459,13 @@ function createRipple(
     ripple.className =
         "void-ripple";
 
-
     ripple.style.left =
         `${x}px`;
 
     ripple.style.top =
         `${y}px`;
 
-
-    body.appendChild(
-        ripple
-    );
+    body.appendChild(ripple);
 
 
     setTimeout(() => {
@@ -555,8 +482,6 @@ function createRipple(
 
 }
 
-
-/* Global touch/click ripple */
 
 document.addEventListener(
     "pointerdown",
@@ -575,13 +500,10 @@ document.addEventListener(
 
 
 /* =========================================================
-   SLASH EFFECT
+   SLASH
    ========================================================= */
 
-function createSlash(
-    x,
-    y
-) {
+function createSlash(x, y) {
 
     const slash =
         document.createElement("div");
@@ -606,9 +528,7 @@ function createSlash(
          rotate(${rotation}deg)`;
 
 
-    body.appendChild(
-        slash
-    );
+    body.appendChild(slash);
 
 
     setTimeout(() => {
@@ -651,10 +571,7 @@ function createGlitch() {
     glitch.className =
         "void-glitch";
 
-
-    body.appendChild(
-        glitch
-    );
+    body.appendChild(glitch);
 
 
     setTimeout(() => {
@@ -675,8 +592,7 @@ function createGlitch() {
 setInterval(() => {
 
     if (
-        Math.random() <
-        0.25
+        Math.random() < 0.25
     ) {
 
         createGlitch();
@@ -690,10 +606,7 @@ setInterval(() => {
    EXPLOSION
    ========================================================= */
 
-function createExplosion(
-    x,
-    y
-) {
+function createExplosion(x, y) {
 
     const explosion =
         document.createElement("div");
@@ -709,9 +622,7 @@ function createExplosion(
         `${y}px`;
 
 
-    body.appendChild(
-        explosion
-    );
+    body.appendChild(explosion);
 
 
     setTimeout(() => {
@@ -743,21 +654,19 @@ const revealObserver =
     new IntersectionObserver(
         entries => {
 
-            entries.forEach(
-                entry => {
+            entries.forEach(entry => {
 
-                    if (
-                        entry.isIntersecting
-                    ) {
+                if (
+                    entry.isIntersecting
+                ) {
 
-                        entry.target.classList.add(
-                            "visible"
-                        );
-
-                    }
+                    entry.target.classList.add(
+                        "visible"
+                    );
 
                 }
-            );
+
+            });
 
         },
         {
@@ -766,15 +675,11 @@ const revealObserver =
     );
 
 
-sections.forEach(
-    section => {
+sections.forEach(section => {
 
-        revealObserver.observe(
-            section
-        );
+    revealObserver.observe(section);
 
-    }
-);
+});
 
 
 /* =========================================================
@@ -787,46 +692,42 @@ const navLinks =
     );
 
 
-navLinks.forEach(
-    link => {
+navLinks.forEach(link => {
 
-        link.addEventListener(
-            "click",
-            event => {
+    link.addEventListener(
+        "click",
+        event => {
 
-                const targetId =
-                    link.getAttribute(
-                        "href"
-                    );
+            const targetId =
+                link.getAttribute("href");
 
 
-                const target =
-                    document.querySelector(
-                        targetId
-                    );
+            const target =
+                document.querySelector(
+                    targetId
+                );
 
 
-                if (!target) {
-                    return;
-                }
-
-
-                event.preventDefault();
-
-
-                target.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-
-
-                playHoverSound();
-
+            if (!target) {
+                return;
             }
-        );
 
-    }
-);
+
+            event.preventDefault();
+
+
+            target.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+
+            playHoverSound();
+
+        }
+    );
+
+});
 
 
 /* =========================================================
@@ -843,35 +744,29 @@ const navObserver =
     new IntersectionObserver(
         entries => {
 
-            entries.forEach(
-                entry => {
+            entries.forEach(entry => {
 
-                    if (
-                        entry.isIntersecting
-                    ) {
+                if (
+                    entry.isIntersecting
+                ) {
 
-                        const id =
-                            entry.target.id;
+                    const id =
+                        entry.target.id;
 
 
-                        navLinks.forEach(
-                            link => {
+                    navLinks.forEach(link => {
 
-                                link.classList.toggle(
-                                    "active",
-                                    link.getAttribute(
-                                        "href"
-                                    ) ===
-                                    `#${id}`
-                                );
-
-                            }
+                        link.classList.toggle(
+                            "active",
+                            link.getAttribute("href") ===
+                            `#${id}`
                         );
 
-                    }
+                    });
 
                 }
-            );
+
+            });
 
         },
         {
@@ -880,15 +775,11 @@ const navObserver =
     );
 
 
-navSections.forEach(
-    section => {
+navSections.forEach(section => {
 
-        navObserver.observe(
-            section
-        );
+    navObserver.observe(section);
 
-    }
-);
+});
 
 
 /* =========================================================
@@ -901,76 +792,69 @@ const tiltElements =
     );
 
 
-tiltElements.forEach(
-    element => {
+tiltElements.forEach(element => {
 
+    element.addEventListener(
+        "pointermove",
+        event => {
 
-        element.addEventListener(
-            "pointermove",
-            event => {
-
-                if (
-                    event.pointerType !==
-                    "mouse"
-                ) {
-                    return;
-                }
-
-
-                const rect =
-                    element.getBoundingClientRect();
-
-
-                const x =
-                    event.clientX -
-                    rect.left;
-
-
-                const y =
-                    event.clientY -
-                    rect.top;
-
-
-                const centerX =
-                    rect.width / 2;
-
-
-                const centerY =
-                    rect.height / 2;
-
-
-                const rotateX =
-                    ((y - centerY) /
-                    centerY) * -5;
-
-
-                const rotateY =
-                    ((x - centerX) /
-                    centerX) * 5;
-
-
-                element.style.transform =
-                    `perspective(700px)
-                     rotateX(${rotateX}deg)
-                     rotateY(${rotateY}deg)
-                     translateY(-4px)`;
-
+            if (
+                event.pointerType !== "mouse"
+            ) {
+                return;
             }
-        );
 
 
-        element.addEventListener(
-            "pointerleave",
-            () => {
+            const rect =
+                element.getBoundingClientRect();
 
-                element.style.transform =
-                    "";
 
-            }
-        );
+            const x =
+                event.clientX -
+                rect.left;
 
-    }
-);
+            const y =
+                event.clientY -
+                rect.top;
+
+
+            const centerX =
+                rect.width / 2;
+
+            const centerY =
+                rect.height / 2;
+
+
+            const rotateX =
+                ((y - centerY) /
+                centerY) * -5;
+
+            const rotateY =
+                ((x - centerX) /
+                centerX) * 5;
+
+
+            element.style.transform =
+                `perspective(700px)
+                 rotateX(${rotateX}deg)
+                 rotateY(${rotateY}deg)
+                 translateY(-4px)`;
+
+        }
+    );
+
+
+    element.addEventListener(
+        "pointerleave",
+        () => {
+
+            element.style.transform =
+                "";
+
+        }
+    );
+
+});
 
 
 /* =========================================================
@@ -983,9 +867,7 @@ const progress =
 progress.id =
     "void-progress";
 
-body.appendChild(
-    progress
-);
+body.appendChild(progress);
 
 
 function updateProgress() {
@@ -1001,8 +883,7 @@ function updateProgress() {
 
     const percentage =
         documentHeight > 0
-            ? (scrollTop /
-               documentHeight) * 100
+            ? (scrollTop / documentHeight) * 100
             : 0;
 
 
@@ -1042,10 +923,7 @@ topButton.setAttribute(
 topButton.innerHTML =
     "↑";
 
-
-body.appendChild(
-    topButton
-);
+body.appendChild(topButton);
 
 
 topButton.addEventListener(
@@ -1056,7 +934,6 @@ topButton.addEventListener(
             top: 0,
             behavior: "smooth"
         });
-
 
         playHoverSound();
 
@@ -1069,8 +946,7 @@ window.addEventListener(
     () => {
 
         if (
-            window.scrollY >
-            500
+            window.scrollY > 500
         ) {
 
             topButton.classList.add(
@@ -1108,9 +984,7 @@ cursor.innerHTML = `
 `;
 
 
-body.appendChild(
-    cursor
-);
+body.appendChild(cursor);
 
 
 document.addEventListener(
@@ -1118,8 +992,7 @@ document.addEventListener(
     event => {
 
         if (
-            event.pointerType !==
-            "mouse"
+            event.pointerType !== "mouse"
         ) {
             return;
         }
@@ -1139,7 +1012,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   CURSOR CLICK EFFECT
+   CURSOR CLICK
    ========================================================= */
 
 document.addEventListener(
@@ -1147,8 +1020,7 @@ document.addEventListener(
     event => {
 
         if (
-            event.pointerType ===
-            "mouse"
+            event.pointerType === "mouse"
         ) {
 
             cursor.classList.add(
@@ -1188,20 +1060,18 @@ window.addEventListener(
             window.scrollY;
 
 
-        parallaxElements.forEach(
-            element => {
+        parallaxElements.forEach(element => {
 
-                const speed =
-                    parseFloat(
-                        element.dataset.parallax
-                    ) || 0.15;
+            const speed =
+                parseFloat(
+                    element.dataset.parallax
+                ) || 0.15;
 
 
-                element.style.transform =
-                    `translateY(${scroll * speed}px)`;
+            element.style.transform =
+                `translateY(${scroll * speed}px)`;
 
-            }
-        );
+        });
 
     },
     {
@@ -1250,7 +1120,6 @@ function activateVoidMode() {
 
         voidMode = false;
 
-
         body.classList.remove(
             "void-mode"
         );
@@ -1290,8 +1159,7 @@ document.addEventListener(
 
 
         if (
-            typedKeys ===
-            "VOID"
+            typedKeys === "VOID"
         ) {
 
             activateVoidMode();
@@ -1305,7 +1173,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   MOBILE LONG PRESS VOID MODE
+   MOBILE LONG PRESS
    ========================================================= */
 
 let longPressTimer =
@@ -1317,8 +1185,7 @@ document.addEventListener(
     event => {
 
         if (
-            event.pointerType ===
-            "mouse"
+            event.pointerType === "mouse"
         ) {
             return;
         }
@@ -1373,35 +1240,28 @@ document.addEventListener(
    ========================================================= */
 
 const images =
-    document.querySelectorAll(
-        "img"
+    document.querySelectorAll("img");
+
+
+images.forEach(image => {
+
+    image.addEventListener(
+        "pointerdown",
+        event => {
+
+            createExplosion(
+                event.clientX,
+                event.clientY
+            );
+
+        }
     );
 
-
-images.forEach(
-    image => {
-
-        image.addEventListener(
-            "pointerdown",
-            event => {
-
-                createExplosion(
-                    event.clientX,
-                    event.clientY
-                );
-
-            }
-        );
-
-    }
-);
+});
 
 
 /* =========================================================
    CORE SKILLS
-   Supports both:
-   #core-skills
-   #coreskills
    ========================================================= */
 
 const coreSkills =
@@ -1418,27 +1278,24 @@ if (coreSkills) {
         );
 
 
-    skillItems.forEach(
-        item => {
+    skillItems.forEach(item => {
 
-            item.addEventListener(
-                "pointerenter",
-                event => {
+        item.addEventListener(
+            "pointerenter",
+            event => {
 
-                    if (
-                        event.pointerType ===
-                        "mouse"
-                    ) {
+                if (
+                    event.pointerType === "mouse"
+                ) {
 
-                        playHoverSound();
-
-                    }
+                    playHoverSound();
 
                 }
-            );
 
-        }
-    );
+            }
+        );
+
+    });
 
 }
 
