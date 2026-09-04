@@ -1,43 +1,28 @@
-/* =========================================================
-   VOIDSPOKEN // VOID REALM ENGINE
-   ========================================================= */
-
 document.addEventListener("DOMContentLoaded", () => {
-    "use strict";
 
-    /* =====================================================
-       BASIC SETUP
-    ===================================================== */
+    /* =========================================================
+       VOID SPOKEN
+       Main Interactive System
+       ========================================================= */
 
     const body = document.body;
-
     const reducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    const touchDevice =
+    const isTouchDevice =
         window.matchMedia("(pointer: coarse)").matches ||
         "ontouchstart" in window;
 
-    let introPlaying = true;
-    let voidMode = false;
-    let lastPointerDown = 0;
-    let longPressTimer = null;
-
-    /* =====================================================
-       AUDIO SOURCE CONNECTION
-       ===================================================== */
+    /* =========================================================
+       AUDIO
+       ========================================================= */
 
     const INTRO_AUDIO_SRC = "./intro.mp3";
     const HOVER_AUDIO_SRC = "./hover.mp3";
 
     let introAudio = document.getElementById("intro-audio");
     let hoverAudio = document.getElementById("hover-audio");
-
-    /*
-     * Create the audio elements automatically if HTML
-     * does not already contain them.
-     */
 
     if (!introAudio) {
         introAudio = document.createElement("audio");
@@ -51,10 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(hoverAudio);
     }
 
-    /*
-     * CONNECT THE AUDIO FILES
-     */
-
     introAudio.src = INTRO_AUDIO_SRC;
     hoverAudio.src = HOVER_AUDIO_SRC;
 
@@ -64,110 +45,201 @@ document.addEventListener("DOMContentLoaded", () => {
     introAudio.load();
     hoverAudio.load();
 
-    /* =====================================================
-       UTILITY
-    ===================================================== */
+    let introFinished = false;
+    let introClosed = false;
 
-    function vibrate(pattern = 20) {
-        if ("vibrate" in navigator) {
-            try {
-                navigator.vibrate(pattern);
-            } catch (_) {}
-        }
-    }
+    /* =========================================================
+       INTRO
+       ========================================================= */
 
-    function createElement(
-        tag,
-        className = "",
-        parent = document.body
-    ) {
-        const element = document.createElement(tag);
+    const intro = document.createElement("div");
+    intro.id = "void-intro";
 
-        if (className) {
-            element.className = className;
-        }
+    intro.innerHTML = `
+        <div class="void-intro-grid"></div>
 
-        parent.appendChild(element);
-
-        return element;
-    }
-
-    /* =====================================================
-       INTRO SCREEN
-    ===================================================== */
-
-    function createIntro() {
-        if (document.getElementById("void-intro")) {
-            return document.getElementById("void-intro");
-        }
-
-        const intro = createElement(
-            "div",
-            "",
-            document.body
-        );
-
-        intro.id = "void-intro";
-
-        intro.innerHTML = `
-            <div class="void-intro-grid"></div>
+        <div class="void-intro-content">
 
             <div class="void-energy-ring"></div>
             <div class="void-energy-ring ring-two"></div>
             <div class="void-energy-ring ring-three"></div>
 
-            <div class="void-intro-content">
-
-                <div class="void-intro-symbol">
-                    ◈
-                </div>
-
-                <div class="void-intro-title">
-                    VOIDSPOKEN
-                </div>
-
-                <div class="void-intro-subtitle">
-                    ENTER THE VOID
-                </div>
-
-                <div class="void-intro-status">
-                    INITIALIZING REALITY...
-                </div>
-
+            <div class="void-intro-symbol">
+                ∅
             </div>
-        `;
 
-        return intro;
+            <div class="void-intro-title">
+                VOIDSPOKEN
+            </div>
+
+            <div class="void-intro-subtitle">
+                ENTER THE VOID
+            </div>
+
+            <div class="void-intro-status">
+                INITIALIZING REALITY...
+            </div>
+
+        </div>
+    `;
+
+    body.prepend(intro);
+
+    /* =========================================================
+       PARTICLES
+       ========================================================= */
+
+    function createParticles() {
+
+        if (document.getElementById("void-particles")) return;
+
+        const container = document.createElement("div");
+        container.id = "void-particles";
+
+        const particleCount = isTouchDevice ? 35 : 70;
+
+        for (let i = 0; i < particleCount; i++) {
+
+            const particle = document.createElement("span");
+
+            particle.className = "void-particle";
+
+            particle.style.left =
+                Math.random() * 100 + "%";
+
+            particle.style.top =
+                Math.random() * 100 + "%";
+
+            particle.style.animationDelay =
+                Math.random() * 8 + "s";
+
+            particle.style.animationDuration =
+                5 + Math.random() * 8 + "s";
+
+            const size = 1 + Math.random() * 3;
+
+            particle.style.width = size + "px";
+            particle.style.height = size + "px";
+
+            container.appendChild(particle);
+        }
+
+        body.appendChild(container);
     }
 
-    const intro = createIntro();
+    createParticles();
 
-    /* =====================================================
+
+    /* =========================================================
+       SAHASRARA CHAKRA
+       Appears AFTER intro closes
+       ========================================================= */
+
+    function createChakra() {
+
+        if (document.getElementById("void-chakra")) return;
+
+        const chakra = document.createElement("div");
+
+        chakra.id = "void-chakra";
+
+        chakra.innerHTML = `
+            <div class="void-chakra-aura"></div>
+
+            <div class="void-chakra-ring"></div>
+
+            <div
+                class="void-chakra-petals"
+                id="chakra-outer">
+            </div>
+
+            <div
+                class="void-chakra-inner"
+                id="chakra-inner">
+            </div>
+
+            <div class="void-chakra-center"></div>
+        `;
+
+        body.appendChild(chakra);
+
+        const outer =
+            chakra.querySelector("#chakra-outer");
+
+        const inner =
+            chakra.querySelector("#chakra-inner");
+
+
+        /* Outer petals */
+
+        for (let i = 0; i < 32; i++) {
+
+            const petal =
+                document.createElement("div");
+
+            petal.className =
+                "void-chakra-petal";
+
+            const angle =
+                i * (360 / 32);
+
+            petal.style.transform =
+                `translate(-50%, -100%) rotate(${angle}deg)`;
+
+            outer.appendChild(petal);
+        }
+
+
+        /* Inner petals */
+
+        for (let i = 0; i < 16; i++) {
+
+            const petal =
+                document.createElement("div");
+
+            petal.className =
+                "void-chakra-petal";
+
+            const angle =
+                i * (360 / 16) + 11.25;
+
+            petal.style.transform =
+                `translate(-50%, -100%) rotate(${angle}deg)`;
+
+            inner.appendChild(petal);
+        }
+    }
+
+    createChakra();
+
+
+    /* =========================================================
        CLOSE INTRO
-    ===================================================== */
-
-    let introClosed = false;
+       ========================================================= */
 
     function closeIntro() {
 
         if (introClosed) return;
 
         introClosed = true;
-        introPlaying = false;
+        introFinished = true;
 
-        const status =
-            intro.querySelector(".void-intro-status");
+        intro.classList.add("void-intro-out");
 
-        if (status) {
-            status.textContent =
-                "REALITY SYNCHRONIZED";
+        const chakra =
+            document.getElementById("void-chakra");
+
+        /*
+         * Chakra appears shortly after the intro begins
+         * disappearing, creating a cinematic transition.
+         */
+
+        if (chakra) {
+
+            setTimeout(() => {
+                chakra.classList.add("active");
+            }, 900);
         }
-
-        setTimeout(() => {
-            intro.classList.add(
-                "void-intro-out"
-            );
-        }, reducedMotion ? 50 : 450);
 
         setTimeout(() => {
 
@@ -175,446 +247,182 @@ document.addEventListener("DOMContentLoaded", () => {
                 intro.remove();
             }
 
-        }, reducedMotion ? 200 : 1800);
+        }, 1800);
     }
 
-    /* =====================================================
-       INTRO AUDIO
-    ===================================================== */
 
-    introAudio.volume = 0.8;
+    /* =========================================================
+       INTRO AUDIO
+       30 SECOND INTRO
+       ========================================================= */
 
     introAudio.addEventListener(
         "ended",
-        closeIntro
-    );
-
-    introAudio.addEventListener(
-        "error",
         () => {
-
-            console.warn(
-                "VOIDSPOKEN: intro.mp3 could not be loaded."
-            );
-
-            setTimeout(
-                closeIntro,
-                1200
-            );
-        }
+            closeIntro();
+        },
+        { once: true }
     );
 
-    function startIntroAudio() {
-
-        try {
-
-            const playPromise =
-                introAudio.play();
-
-            if (
-                playPromise &&
-                typeof playPromise.catch ===
-                "function"
-            ) {
-
-                playPromise.catch(() => {
-
-                    /*
-                     * Browser autoplay protection.
-                     */
-
-                    console.warn(
-                        "VOIDSPOKEN: autoplay was blocked."
-                    );
-
-                    setTimeout(
-                        closeIntro,
-                        1800
-                    );
-                });
-            }
-
-        } catch (error) {
-
-            console.warn(
-                "VOIDSPOKEN audio error:",
-                error
-            );
-
-            setTimeout(
-                closeIntro,
-                1500
-            );
-        }
-    }
-
-    startIntroAudio();
 
     /*
-     * Safety timeout.
-     * The intro can never trap the visitor forever.
+     * Try to start the 30-second intro automatically.
+     */
+
+    const introPlayPromise =
+        introAudio.play();
+
+    if (introPlayPromise !== undefined) {
+
+        introPlayPromise.catch(() => {
+
+            /*
+             * Browser autoplay restriction.
+             * We don't leave the user trapped in the intro.
+             */
+
+            setTimeout(() => {
+                closeIntro();
+            }, 2500);
+        });
+    }
+
+
+    /*
+     * Safety fallback.
+     *
+     * If the audio is exactly 30 seconds but the browser
+     * fails to fire "ended", close after 30.5 seconds.
      */
 
     setTimeout(() => {
 
-        if (introPlaying) {
+        if (!introFinished) {
             closeIntro();
         }
 
-    }, 7000);
+    }, 30500);
 
-    /* =====================================================
-       HOVER / TOUCH AUDIO SYSTEM
-    ===================================================== */
 
-    const soundElements =
-        document.querySelectorAll(
-            "a, button, article, li, th, .interactive, [data-sound]"
-        );
+    /* =========================================================
+       HOVER / TOUCH SOUND SYSTEM
+       Prevents sound from cutting itself off
+       ========================================================= */
 
-    const soundPool = [];
-
-    /*
-     * Multiple audio objects prevent sounds from cutting
-     * each other off when several elements are touched
-     * quickly.
-     */
+    const hoverSounds = [];
 
     for (let i = 0; i < 4; i++) {
 
-        const audio =
+        const sound =
             new Audio(HOVER_AUDIO_SRC);
 
-        audio.preload = "auto";
-        audio.volume = 0.35;
+        sound.preload = "auto";
+        sound.volume = 0.35;
 
-        soundPool.push(audio);
+        hoverSounds.push(sound);
     }
 
     let soundIndex = 0;
 
     function playHoverSound() {
 
-        if (
-            introPlaying ||
-            soundPool.length === 0
-        ) {
-            return;
-        }
+        if (!introFinished) return;
 
-        const audio =
-            soundPool[soundIndex];
+        const sound =
+            hoverSounds[soundIndex];
 
         soundIndex =
-            (soundIndex + 1) %
-            soundPool.length;
+            (soundIndex + 1) % hoverSounds.length;
 
         try {
 
-            audio.currentTime = 0;
+            sound.pause();
+            sound.currentTime = 0;
 
             const promise =
-                audio.play();
+                sound.play();
 
-            if (
-                promise &&
-                typeof promise.catch ===
-                "function"
-            ) {
+            if (promise) {
                 promise.catch(() => {});
             }
 
-        } catch (_) {}
+        } catch (error) {}
     }
 
-    soundElements.forEach((element) => {
 
-        /* Desktop hover */
+    /* =========================================================
+       INTERACTIVE ELEMENTS
+       ========================================================= */
 
-        element.addEventListener(
-            "pointerenter",
-            (event) => {
-
-                if (
-                    event.pointerType ===
-                    "mouse"
-                ) {
-                    playHoverSound();
-                }
-
-            }
+    const interactiveElements =
+        document.querySelectorAll(
+            "a, button, .card, .skill-card, " +
+            ".project-card, .interest-card, " +
+            "nav li, img"
         );
 
-        /* Mobile touch */
+
+    /*
+     * Desktop hover
+     */
+
+    if (!isTouchDevice) {
+
+        interactiveElements.forEach(element => {
+
+            element.addEventListener(
+                "pointerenter",
+                () => {
+                    playHoverSound();
+                }
+            );
+
+        });
+    }
+
+
+    /*
+     * Mobile touch
+     */
+
+    interactiveElements.forEach(element => {
 
         element.addEventListener(
             "pointerdown",
-            (event) => {
+            () => {
 
-                if (
-                    event.pointerType ===
-                    "touch"
-                ) {
-
-                    const now =
-                        Date.now();
-
-                    if (
-                        now -
-                        lastPointerDown >
-                        100
-                    ) {
-                        playHoverSound();
-                    }
-
-                    lastPointerDown =
-                        now;
+                if (isTouchDevice) {
+                    playHoverSound();
                 }
 
-            }
+            },
+            { passive: true }
         );
 
     });
 
-    /* =====================================================
-       PARTICLES
-    ===================================================== */
 
-    function createParticles()
-    function createChakra() {
-    const chakra = document.createElement("div");
-    chakra.id = "void-chakra";
-
-    chakra.innerHTML = `
-        <div class="void-chakra-aura"></div>
-        <div class="void-chakra-ring"></div>
-
-        <div class="void-chakra-petals" id="chakra-outer"></div>
-
-        <div class="void-chakra-inner" id="chakra-inner"></div>
-
-        <div class="void-chakra-center"></div>
-    `;
-
-    document.body.appendChild(chakra);
-
-    const outer = chakra.querySelector("#chakra-outer");
-    const inner = chakra.querySelector("#chakra-inner");
-
-    // Outer 32 petals
-    for (let i = 0; i < 32; i++) {
-        const petal = document.createElement("div");
-        petal.className = "void-chakra-petal";
-
-        const angle = i * (360 / 32);
-
-        petal.style.transform =
-            `translate(-50%, -100%) rotate(${angle}deg)`;
-
-        outer.appendChild(petal);
-    }
-
-    // Inner 16 petals
-    for (let i = 0; i < 16; i++) {
-        const petal = document.createElement("div");
-        petal.className = "void-chakra-petal";
-
-        const angle = i * (360 / 16) + 11.25;
-
-        petal.style.transform =
-            `translate(-50%, -100%) rotate(${angle}deg)`;
-
-        inner.appendChild(petal);
-    }
-
-    // Appear only after the intro
-    setTimeout(() => {
-        chakra.classList.add("active");
-    }, 1900);
-}
-
-createChakra(); {
-
-        if (
-            document.getElementById(
-                "void-particles"
-            )
-        ) {
-            return;
-        }
-
-        const container =
-            createElement(
-                "div",
-                "",
-                document.body
-            );
-
-        container.id =
-            "void-particles";
-
-        const amount =
-            reducedMotion
-                ? 8
-                : window.innerWidth < 700
-                    ? 18
-                    : 35;
-
-        for (
-            let i = 0;
-            i < amount;
-            i++
-        ) {
-
-            const particle =
-                document.createElement(
-                    "span"
-                );
-
-            particle.className =
-                "void-particle";
-
-            const size =
-                Math.random() * 3 + 1;
-
-            const left =
-                Math.random() * 100;
-
-            const duration =
-                Math.random() * 12 + 8;
-
-            const delay =
-                Math.random() * 10;
-
-            particle.style.width =
-                `${size}px`;
-
-            particle.style.height =
-                `${size}px`;
-
-            particle.style.left =
-                `${left}%`;
-
-            particle.style.animationDuration =
-                `${duration}s`;
-
-            particle.style.animationDelay =
-                `-${delay}s`;
-
-            container.appendChild(
-                particle
-            );
-        }
-    }
-
-    createParticles();
-
-    /* =====================================================
-       CUSTOM CURSOR
-    ===================================================== */
-
-    function createCursor() {
-
-        if (
-            touchDevice ||
-            reducedMotion ||
-            document.querySelector(
-                ".void-cursor"
-            )
-        ) {
-            return;
-        }
-
-        const cursor =
-            createElement(
-                "div",
-                "void-cursor"
-            );
-
-        const core =
-            createElement(
-                "div",
-                "void-cursor-core"
-            );
-
-        let mouseX = -50;
-        let mouseY = -50;
-
-        let cursorX = -50;
-        let cursorY = -50;
-
-        document.addEventListener(
-            "pointermove",
-            (event) => {
-
-                if (
-                    event.pointerType !==
-                    "mouse"
-                ) {
-                    return;
-                }
-
-                mouseX =
-                    event.clientX;
-
-                mouseY =
-                    event.clientY;
-            }
-        );
-
-        function animateCursor() {
-
-            cursorX +=
-                (mouseX - cursorX) *
-                0.15;
-
-            cursorY +=
-                (mouseY - cursorY) *
-                0.15;
-
-            cursor.style.left =
-                `${cursorX - 12}px`;
-
-            cursor.style.top =
-                `${cursorY - 12}px`;
-
-            core.style.left =
-                `${mouseX - 3}px`;
-
-            core.style.top =
-                `${mouseY - 3}px`;
-
-            requestAnimationFrame(
-                animateCursor
-            );
-        }
-
-        animateCursor();
-    }
-
-    createCursor();
-
-    /* =====================================================
-       RIPPLE
-    ===================================================== */
+    /* =========================================================
+       RIPPLE EFFECT
+       ========================================================= */
 
     function createRipple(x, y) {
 
-        if (reducedMotion) {
-            return;
-        }
+        if (reducedMotion) return;
 
         const ripple =
-            createElement(
-                "span",
-                "void-ripple"
-            );
+            document.createElement("div");
+
+        ripple.className =
+            "void-ripple";
 
         ripple.style.left =
-            `${x}px`;
+            x + "px";
 
         ripple.style.top =
-            `${y}px`;
+            y + "px";
+
+        body.appendChild(ripple);
 
         setTimeout(() => {
 
@@ -622,43 +430,39 @@ createChakra(); {
                 ripple.remove();
             }
 
-        }, 800);
+        }, 900);
     }
+
 
     document.addEventListener(
         "pointerdown",
-        (event) => {
+        event => {
 
-            if (
-                event.pointerType ===
-                    "mouse" ||
-                event.pointerType ===
-                    "touch"
-            ) {
+            createRipple(
+                event.clientX,
+                event.clientY
+            );
 
-                createRipple(
-                    event.clientX,
-                    event.clientY
-                );
-            }
-        }
+        },
+        { passive: true }
     );
 
-    /* =====================================================
-       SLASH
-    ===================================================== */
+
+    /* =========================================================
+       SLASH EFFECT
+       ========================================================= */
 
     function createSlash() {
 
-        if (reducedMotion) {
-            return;
-        }
+        if (reducedMotion) return;
 
         const slash =
-            createElement(
-                "div",
-                "void-slash"
-            );
+            document.createElement("div");
+
+        slash.className =
+            "void-slash";
+
+        body.appendChild(slash);
 
         setTimeout(() => {
 
@@ -666,58 +470,49 @@ createChakra(); {
                 slash.remove();
             }
 
-        }, 750);
+        }, 700);
     }
 
-    /* =====================================================
-       GLITCH
-    ===================================================== */
 
-    function glitch(
-        element = body
-    ) {
+    /* =========================================================
+       GLITCH EFFECT
+       ========================================================= */
 
-        if (
-            reducedMotion ||
-            !element
-        ) {
-            return;
-        }
+    function createGlitch() {
 
-        element.classList.remove(
-            "void-glitch"
-        );
+        if (reducedMotion) return;
 
-        void element.offsetWidth;
-
-        element.classList.add(
-            "void-glitch"
-        );
+        body.classList.add("void-glitch");
 
         setTimeout(() => {
 
-            element.classList.remove(
-                "void-glitch"
-            );
+            body.classList.remove("void-glitch");
 
-        }, 350);
+        }, 500);
     }
 
-    /* =====================================================
-       EXPLOSION
-    ===================================================== */
 
-    function createExplosion() {
+    /* =========================================================
+       EXPLOSION EFFECT
+       ========================================================= */
 
-        if (reducedMotion) {
-            return;
-        }
+    function createExplosion(x, y) {
+
+        if (reducedMotion) return;
 
         const explosion =
-            createElement(
-                "div",
-                "void-explosion"
-            );
+            document.createElement("div");
+
+        explosion.className =
+            "void-explosion";
+
+        explosion.style.left =
+            x + "px";
+
+        explosion.style.top =
+            y + "px";
+
+        body.appendChild(explosion);
 
         setTimeout(() => {
 
@@ -725,41 +520,36 @@ createChakra(); {
                 explosion.remove();
             }
 
-        }, 1200);
+        }, 1000);
     }
 
-    /* =====================================================
+
+    /* =========================================================
        SECTION REVEAL
-    ===================================================== */
+       ========================================================= */
 
     const sections =
         document.querySelectorAll(
             "main section"
         );
 
-    if (
-        "IntersectionObserver"
-        in window
-    ) {
+    if ("IntersectionObserver" in window) {
 
-        const sectionObserver =
+        const observer =
             new IntersectionObserver(
-                (entries) => {
+                entries => {
 
-                    entries.forEach(
-                        (entry) => {
+                    entries.forEach(entry => {
 
-                            if (
-                                entry.isIntersecting
-                            ) {
+                        if (entry.isIntersecting) {
 
-                                entry.target.classList.add(
-                                    "visible"
-                                );
-                            }
+                            entry.target.classList.add(
+                                "visible"
+                            );
 
                         }
-                    );
+
+                    });
 
                 },
                 {
@@ -767,749 +557,642 @@ createChakra(); {
                 }
             );
 
-        sections.forEach(
-            (section) => {
-
-                sectionObserver.observe(
-                    section
-                );
-
-            }
-        );
+        sections.forEach(section => {
+            observer.observe(section);
+        });
 
     } else {
 
-        sections.forEach(
-            (section) => {
-
-                section.classList.add(
-                    "visible"
-                );
-
-            }
-        );
+        sections.forEach(section => {
+            section.classList.add("visible");
+        });
     }
 
-    /* =====================================================
+
+    /* =========================================================
        NAVIGATION
-    ===================================================== */
+       ========================================================= */
 
     const navLinks =
         document.querySelectorAll(
-            "nav a[href^='#']"
+            'nav a[href^="#"]'
         );
 
-    const sectionMap =
-        new Map();
+    navLinks.forEach(link => {
 
-    navLinks.forEach(
-        (link) => {
+        link.addEventListener(
+            "click",
+            event => {
 
-            const id =
-                link.getAttribute(
-                    "href"
-                );
+                const targetID =
+                    link.getAttribute("href");
 
-            if (
-                !id ||
-                id === "#"
-            ) {
-                return;
+                const target =
+                    document.querySelector(targetID);
+
+                if (!target) return;
+
+                event.preventDefault();
+
+                target.scrollIntoView({
+                    behavior: reducedMotion
+                        ? "auto"
+                        : "smooth",
+                    block: "start"
+                });
+
             }
+        );
 
-            const section =
-                document.querySelector(
-                    id
-                );
+    });
 
-            if (section) {
 
-                sectionMap.set(
-                    section,
-                    link
-                );
-            }
-
-            link.addEventListener(
-                "click",
-                (event) => {
-
-                    const target =
-                        document.querySelector(
-                            id
-                        );
-
-                    if (!target) {
-                        return;
-                    }
-
-                    event.preventDefault();
-
-                    createSlash();
-                    playHoverSound();
-
-                    target.scrollIntoView(
-                        {
-                            behavior:
-                                reducedMotion
-                                    ? "auto"
-                                    : "smooth",
-
-                            block:
-                                "start"
-                        }
-                    );
-
-                    navLinks.forEach(
-                        (item) => {
-
-                            item.classList.remove(
-                                "active"
-                            );
-
-                        }
-                    );
-
-                    link.classList.add(
-                        "active"
-                    );
-                }
-            );
-        }
-    );
-
-    /* =====================================================
+    /* =========================================================
        ACTIVE NAVIGATION
-    ===================================================== */
+       ========================================================= */
 
-    if (
-        "IntersectionObserver"
-        in window
-    ) {
+    if ("IntersectionObserver" in window) {
 
         const navObserver =
             new IntersectionObserver(
-                (entries) => {
+                entries => {
 
-                    entries.forEach(
-                        (entry) => {
+                    entries.forEach(entry => {
 
-                            if (
-                                !entry.isIntersecting
-                            ) {
-                                return;
-                            }
+                        if (!entry.isIntersecting)
+                            return;
 
-                            const link =
-                                sectionMap.get(
-                                    entry.target
-                                );
+                        const id =
+                            entry.target.id;
 
-                            if (!link) {
-                                return;
-                            }
+                        navLinks.forEach(link => {
 
-                            navLinks.forEach(
-                                (item) => {
-
-                                    item.classList.remove(
-                                        "active"
-                                    );
-
-                                }
+                            link.classList.toggle(
+                                "active",
+                                link.getAttribute("href") ===
+                                "#" + id
                             );
 
-                            link.classList.add(
-                                "active"
-                            );
-                        }
-                    );
+                        });
+
+                    });
 
                 },
                 {
-                    threshold: 0.25,
-
-                    rootMargin:
-                        "-20% 0px -60% 0px"
+                    threshold: 0.45
                 }
             );
 
-        sectionMap.forEach(
-            (_, section) => {
+        sections.forEach(section => {
 
-                navObserver.observe(
-                    section
-                );
-
+            if (section.id) {
+                navObserver.observe(section);
             }
-        );
+
+        });
     }
 
-    /* =====================================================
+
+    /* =========================================================
        CARD TILT
-    ===================================================== */
+       ========================================================= */
 
-    const cards =
-        document.querySelectorAll(
-            `
-            article,
-            #skills li,
-            #interests li,
-            #coreskills li,
-            #core-skills li,
-            #hobbies li
-            `
-        );
+    if (!isTouchDevice && !reducedMotion) {
 
-    if (
-        !touchDevice &&
-        !reducedMotion
-    ) {
+        const cards =
+            document.querySelectorAll(
+                ".card, .skill-card, " +
+                ".project-card, .interest-card"
+            );
 
-        cards.forEach(
-            (card) => {
+        cards.forEach(card => {
 
-                card.addEventListener(
-                    "pointermove",
-                    (event) => {
+            card.addEventListener(
+                "pointermove",
+                event => {
 
-                        if (
-                            event.pointerType !==
-                            "mouse"
-                        ) {
-                            return;
-                        }
+                    const rect =
+                        card.getBoundingClientRect();
 
-                        const rect =
-                            card.getBoundingClientRect();
+                    const x =
+                        event.clientX - rect.left;
 
-                        const x =
-                            (event.clientX -
-                                rect.left) /
-                            rect.width;
+                    const y =
+                        event.clientY - rect.top;
 
-                        const y =
-                            (event.clientY -
-                                rect.top) /
-                            rect.height;
+                    const rotateY =
+                        ((x / rect.width) - 0.5) * 8;
 
-                        const rotateX =
-                            (0.5 - y) * 5;
+                    const rotateX =
+                        ((y / rect.height) - 0.5) * -8;
 
-                        const rotateY =
-                            (x - 0.5) * 5;
+                    card.style.transform =
+                        `perspective(800px)
+                         rotateX(${rotateX}deg)
+                         rotateY(${rotateY}deg)
+                         translateY(-4px)`;
 
-                        card.style.transform =
-                            `
-                            translateY(-6px)
-                            perspective(700px)
-                            rotateX(${rotateX}deg)
-                            rotateY(${rotateY}deg)
-                            `;
-                    }
-                );
+                }
+            );
 
-                card.addEventListener(
-                    "pointerleave",
-                    () => {
 
-                        card.style.transform =
-                            "";
-                    }
-                );
-            }
-        );
+            card.addEventListener(
+                "pointerleave",
+                () => {
+
+                    card.style.transform = "";
+
+                }
+            );
+
+        });
     }
 
-    /* =====================================================
-       SCROLL PROGRESS
-    ===================================================== */
 
-    const progress =
-        createElement(
-            "div",
-            "",
-            document.body
+    /* =========================================================
+       SCROLL PROGRESS
+       ========================================================= */
+
+    let progress =
+        document.getElementById(
+            "void-progress"
         );
 
-    progress.id =
-        "void-progress";
+    if (!progress) {
+
+        progress =
+            document.createElement("div");
+
+        progress.id =
+            "void-progress";
+
+        body.appendChild(progress);
+    }
+
 
     function updateProgress() {
 
         const scrollTop =
-            window.scrollY ||
-            document.documentElement
-                .scrollTop;
+            window.scrollY;
 
-        const height =
-            document.documentElement
-                .scrollHeight -
+        const scrollHeight =
+            document.documentElement.scrollHeight -
             window.innerHeight;
 
         const percentage =
-            height > 0
-                ? (scrollTop / height) * 100
+            scrollHeight > 0
+                ? (scrollTop / scrollHeight) * 100
                 : 0;
 
         progress.style.width =
-            `${percentage}%`;
+            percentage + "%";
     }
+
 
     window.addEventListener(
         "scroll",
         updateProgress,
-        {
-            passive: true
-        }
+        { passive: true }
     );
 
     updateProgress();
 
-    /* =====================================================
-       BACK TO TOP
-    ===================================================== */
 
-    const topButton =
-        createElement(
-            "button",
-            "",
-            document.body
+    /* =========================================================
+       BACK TO TOP
+       ========================================================= */
+
+    let topButton =
+        document.getElementById(
+            "void-top"
         );
 
-    topButton.id =
-        "void-top";
+    if (!topButton) {
 
-    topButton.type =
-        "button";
+        topButton =
+            document.createElement("button");
 
-    topButton.setAttribute(
-        "aria-label",
-        "Return to top"
-    );
+        topButton.id =
+            "void-top";
 
-    topButton.innerHTML =
-        "↑";
+        topButton.setAttribute(
+            "aria-label",
+            "Back to top"
+        );
 
-    function updateTopButton() {
+        topButton.innerHTML =
+            "↑";
 
-        if (
-            window.scrollY >
-            window.innerHeight * 0.5
-        ) {
-
-            topButton.classList.add(
-                "visible"
-            );
-
-        } else {
-
-            topButton.classList.remove(
-                "visible"
-            );
-        }
+        body.appendChild(topButton);
     }
 
-    window.addEventListener(
-        "scroll",
-        updateTopButton,
-        {
-            passive: true
-        }
-    );
 
     topButton.addEventListener(
         "click",
         () => {
 
-            createSlash();
-            playHoverSound();
+            window.scrollTo({
+                top: 0,
+                behavior: reducedMotion
+                    ? "auto"
+                    : "smooth"
+            });
 
-            window.scrollTo(
-                {
-                    top: 0,
-
-                    behavior:
-                        reducedMotion
-                            ? "auto"
-                            : "smooth"
-                }
-            );
         }
     );
 
-    updateTopButton();
 
-    /* =====================================================
-       PARALLAX
-    ===================================================== */
+    window.addEventListener(
+        "scroll",
+        () => {
 
-    if (
-        !touchDevice &&
-        !reducedMotion
-    ) {
+            if (window.scrollY > 500) {
+
+                topButton.classList.add(
+                    "visible"
+                );
+
+            } else {
+
+                topButton.classList.remove(
+                    "visible"
+                );
+
+            }
+
+        },
+        { passive: true }
+    );
+
+
+    /* =========================================================
+       CUSTOM VOID CURSOR
+       ========================================================= */
+
+    if (!isTouchDevice && !reducedMotion) {
+
+        const cursor =
+            document.createElement("div");
+
+        cursor.className =
+            "void-cursor";
+
+        cursor.innerHTML =
+            `<div class="void-cursor-core"></div>`;
+
+        body.appendChild(cursor);
+
+        let cursorX = 0;
+        let cursorY = 0;
 
         let targetX = 0;
         let targetY = 0;
 
-        let currentX = 0;
-        let currentY = 0;
-
         document.addEventListener(
             "pointermove",
-            (event) => {
-
-                if (
-                    event.pointerType !==
-                    "mouse"
-                ) {
-                    return;
-                }
+            event => {
 
                 targetX =
-                    (
-                        event.clientX /
-                        window.innerWidth -
-                        0.5
-                    ) * 2;
+                    event.clientX;
 
                 targetY =
-                    (
-                        event.clientY /
-                        window.innerHeight -
-                        0.5
-                    ) * 2;
-            }
+                    event.clientY;
+
+            },
+            { passive: true }
         );
 
-        function parallax() {
 
-            currentX +=
-                (targetX - currentX) *
-                0.03;
+        function animateCursor() {
 
-            currentY +=
-                (targetY - currentY) *
-                0.03;
+            cursorX +=
+                (targetX - cursorX) * 0.18;
 
-            document.documentElement
-                .style.setProperty(
-                    "--mouse-x",
-                    currentX.toFixed(3)
-                );
+            cursorY +=
+                (targetY - cursorY) * 0.18;
 
-            document.documentElement
-                .style.setProperty(
-                    "--mouse-y",
-                    currentY.toFixed(3)
-                );
+            cursor.style.transform =
+                `translate3d(
+                    ${cursorX}px,
+                    ${cursorY}px,
+                    0
+                )`;
 
             requestAnimationFrame(
-                parallax
+                animateCursor
             );
         }
 
-        parallax();
+        animateCursor();
+
+
+        interactiveElements.forEach(element => {
+
+            element.addEventListener(
+                "pointerenter",
+                () => {
+
+                    cursor.classList.add(
+                        "active"
+                    );
+
+                }
+            );
+
+            element.addEventListener(
+                "pointerleave",
+                () => {
+
+                    cursor.classList.remove(
+                        "active"
+                    );
+
+                }
+            );
+
+        });
     }
 
-    /* =====================================================
+
+    /* =========================================================
+       PARALLAX
+       ========================================================= */
+
+    let mouseX = 0;
+    let mouseY = 0;
+
+    if (!isTouchDevice && !reducedMotion) {
+
+        document.addEventListener(
+            "pointermove",
+            event => {
+
+                mouseX =
+                    (event.clientX /
+                        window.innerWidth) -
+                    0.5;
+
+                mouseY =
+                    (event.clientY /
+                        window.innerHeight) -
+                    0.5;
+
+                body.style.setProperty(
+                    "--void-mouse-x",
+                    mouseX
+                );
+
+                body.style.setProperty(
+                    "--void-mouse-y",
+                    mouseY
+                );
+
+            },
+            { passive: true }
+        );
+    }
+
+
+    /* =========================================================
        VOID MODE
-    ===================================================== */
+       ========================================================= */
 
-    function toggleVoidMode(
-        force = null
-    ) {
+    let voidMode =
+        false;
 
-        if (force === null) {
 
-            voidMode =
-                !voidMode;
+    function toggleVoidMode() {
 
-        } else {
-
-            voidMode =
-                force;
-        }
+        voidMode =
+            !voidMode;
 
         body.classList.toggle(
             "void-mode",
             voidMode
         );
 
+        createGlitch();
         createSlash();
-        createExplosion();
-        glitch(body);
 
-        vibrate(
-            voidMode
-                ? [30, 40, 80]
-                : [20, 30, 20]
-        );
+        const x =
+            window.innerWidth / 2;
 
-        if (voidMode) {
+        const y =
+            window.innerHeight / 2;
 
-            document.title =
-                "VOIDSPOKEN // VOID MODE";
+        createExplosion(x, y);
 
-            setTimeout(() => {
 
-                if (voidMode) {
-                    document.title =
-                        "VOIDSPOKEN";
-                }
+        /*
+         * Extra chakra intensity during Void Mode
+         */
 
-            }, 2500);
+        const chakra =
+            document.getElementById(
+                "void-chakra"
+            );
 
-        } else {
+        if (chakra) {
 
-            document.title =
-                "VOIDSPOKEN";
+            chakra.classList.toggle(
+                "void-mode-chakra",
+                voidMode
+            );
         }
     }
 
-    /* =====================================================
-       DESKTOP: TYPE VOID
-    ===================================================== */
+
+    /* =========================================================
+       DESKTOP: TYPE "VOID"
+       ========================================================= */
 
     let typedKeys = "";
-    let keyResetTimer = null;
+    let keyTimer = null;
 
     document.addEventListener(
         "keydown",
-        (event) => {
+        event => {
 
-            if (
-                event.ctrlKey ||
-                event.altKey ||
-                event.metaKey
-            ) {
+            if (isTouchDevice) return;
+
+            if (event.key.length !== 1)
                 return;
-            }
 
-            const key =
+            typedKeys +=
                 event.key.toUpperCase();
 
-            if (
-                key.length !== 1
-            ) {
-                return;
-            }
+            typedKeys =
+                typedKeys.slice(-4);
 
-            typedKeys += key;
+            clearTimeout(keyTimer);
 
-            if (
-                typedKeys.length > 4
-            ) {
+            keyTimer =
+                setTimeout(() => {
+                    typedKeys = "";
+                }, 1500);
 
-                typedKeys =
-                    typedKeys.slice(-4);
-            }
 
-            clearTimeout(
-                keyResetTimer
-            );
-
-            keyResetTimer =
-                setTimeout(
-                    () => {
-
-                        typedKeys = "";
-
-                    },
-                    1800
-                );
-
-            if (
-                typedKeys ===
-                "VOID"
-            ) {
-
-                toggleVoidMode();
+            if (typedKeys === "VOID") {
 
                 typedKeys = "";
 
-                clearTimeout(
-                    keyResetTimer
-                );
+                toggleVoidMode();
             }
+
         }
     );
 
-    /* =====================================================
+
+    /* =========================================================
        MOBILE: LONG PRESS
-    ===================================================== */
+       ========================================================= */
 
-    function startLongPress(
-        event
-    ) {
+    let longPressTimer = null;
 
-        if (!touchDevice) {
-            return;
-        }
+    document.addEventListener(
+        "pointerdown",
+        event => {
 
-        clearTimeout(
-            longPressTimer
-        );
+            if (!isTouchDevice) return;
 
-        longPressTimer =
-            setTimeout(
-                () => {
+            longPressTimer =
+                setTimeout(() => {
 
                     toggleVoidMode();
 
-                    vibrate(
-                        [40, 50, 100]
-                    );
-
-                },
-                1200
-            );
-    }
-
-    function cancelLongPress() {
-
-        clearTimeout(
-            longPressTimer
-        );
-    }
-
-    document.addEventListener(
-        "pointerdown",
-        startLongPress
-    );
-
-    document.addEventListener(
-        "pointerup",
-        cancelLongPress
-    );
-
-    document.addEventListener(
-        "pointercancel",
-        cancelLongPress
-    );
-
-    document.addEventListener(
-        "pointermove",
-        cancelLongPress
-    );
-
-    /* =====================================================
-       VOID MODE IMPACT
-    ===================================================== */
-
-    document.addEventListener(
-        "pointerdown",
-        (event) => {
-
-            if (!voidMode) {
-                return;
-            }
-
-            const target =
-                event.target.closest(
-                    "a, button, article, li, th, td"
-                );
-
-            if (!target) {
-                return;
-            }
-
-            createRipple(
-                event.clientX,
-                event.clientY
-            );
-
-            glitch(target);
-        }
-    );
-
-    /* =====================================================
-       IMAGE INTERACTION
-    ===================================================== */
-
-    document.querySelectorAll(
-        "img"
-    ).forEach(
-        (image) => {
-
-            image.addEventListener(
-                "pointerenter",
-                (event) => {
-
-                    if (
-                        event.pointerType ===
-                        "mouse"
-                    ) {
-                        playHoverSound();
-                    }
-                }
-            );
-
-            image.addEventListener(
-                "click",
-                (event) => {
-
-                    createRipple(
+                    createExplosion(
                         event.clientX,
                         event.clientY
                     );
 
-                    if (voidMode) {
-                        glitch(image);
-                    }
-                }
-            );
-        }
+                }, 1200);
+
+        },
+        { passive: true }
     );
 
-    /* =====================================================
-       INITIAL SECTION STATE
-    ===================================================== */
+
+    document.addEventListener(
+        "pointerup",
+        () => {
+
+            clearTimeout(
+                longPressTimer
+            );
+
+        },
+        { passive: true }
+    );
+
+
+    document.addEventListener(
+        "pointercancel",
+        () => {
+
+            clearTimeout(
+                longPressTimer
+            );
+
+        },
+        { passive: true }
+    );
+
+
+    /* =========================================================
+       IMAGE INTERACTION
+       ========================================================= */
+
+    const images =
+        document.querySelectorAll(
+            "img"
+        );
+
+    images.forEach(image => {
+
+        image.addEventListener(
+            "click",
+            event => {
+
+                createRipple(
+                    event.clientX,
+                    event.clientY
+                );
+
+            }
+        );
+
+    });
+
+
+    /* =========================================================
+       INITIAL SECTION VISIBILITY
+       ========================================================= */
 
     sections.forEach(
-        (section) => {
+        (section, index) => {
 
-            const rect =
-                section.getBoundingClientRect();
-
-            if (
-                rect.top <
-                window.innerHeight * 0.9
-            ) {
-
+            if (index === 0) {
                 section.classList.add(
                     "visible"
                 );
             }
+
         }
     );
 
-    /* =====================================================
+
+    /* =========================================================
+       CORE SKILLS ID COMPATIBILITY
+       ========================================================= */
+
+    const coreSkills =
+        document.getElementById(
+            "core-skills"
+        ) ||
+        document.getElementById(
+            "coreskills"
+        );
+
+    if (coreSkills) {
+
+        coreSkills.classList.add(
+            "void-core-skills"
+        );
+    }
+
+
+    /* =========================================================
        RESIZE
-    ===================================================== */
+       ========================================================= */
 
     window.addEventListener(
         "resize",
         () => {
 
             updateProgress();
-            updateTopButton();
 
-        }
+        },
+        { passive: true }
     );
 
-    /* =====================================================
-       CONSOLE
-    ===================================================== */
+
+    /* =========================================================
+       VOID SIGNATURE
+       ========================================================= */
 
     console.log(
         "%c VOIDSPOKEN ",
-        "background:#080000;color:#ff1738;font-weight:bold;padding:8px 14px;"
+        "color:#ff2020;" +
+        "background:#050000;" +
+        "font-size:20px;" +
+        "font-weight:bold;" +
+        "padding:8px;"
     );
 
     console.log(
-        "%c The Void has been initialized.",
-        "color:#c40020;"
+        "%c Reality is only the surface. ",
+        "color:#b00000;" +
+        "font-size:14px;"
     );
 
 });
