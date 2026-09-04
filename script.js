@@ -1,49 +1,37 @@
 /* =========================================================
-   VOIDSPOKEN RESUME
-   FULL JAVASCRIPT EXPERIENCE
+   VOIDSPOKEN
+   ANIME / VOID INTERACTION SYSTEM
    HTML CHANGES NOT REQUIRED
    ========================================================= */
 
 (() => {
     "use strict";
 
-
-    /* =========================================================
-       CONFIGURATION
-       ========================================================= */
+    /* =====================================================
+       CONFIG
+       ===================================================== */
 
     const CONFIG = {
+        introSound: "intro.mp3",
+        hoverSound: "hover.mp3",
 
-        intro: {
-            sound: "intro.mp3",
-            volume: 0.35,
-            duration: 4200
-        },
+        introVolume: 0.35,
+        hoverVolume: 0.08,
 
-        hover: {
-            sound: "hover.mp3",
-            volume: 0.08
-        },
+        introDuration: 4200,
 
-        effects: {
-            rippleDuration: 700,
-            vibrationDuration: 15,
-            glitchInterval: 5000
-        },
+        rippleDuration: 700,
+        glitchInterval: 5000,
 
-        selectors: {
-            navLinks: "nav a",
-            sections: "main section",
-            articles: "article",
-            images: "img"
-        }
+        particleCount: 45,
 
+        enableHaptics: true
     };
 
 
-    /* =========================================================
-       GLOBAL STATE
-       ========================================================= */
+    /* =====================================================
+       STATE
+       ===================================================== */
 
     let introPlaying = true;
     let introFinished = false;
@@ -51,98 +39,121 @@
     let mouseX = 0;
     let mouseY = 0;
 
-    let glowX = 0;
-    let glowY = 0;
-
-    let animationFrame = null;
+    let targetX = 0;
+    let targetY = 0;
 
     let voidSequence = "";
+    let longPressTimer = null;
 
     const VOID_CODE = "void";
 
-    const prefersReducedMotion =
+    const reducedMotion =
         window.matchMedia &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const isTouchDevice =
+    const touchDevice =
         "ontouchstart" in window ||
         navigator.maxTouchPoints > 0;
 
 
-    /* =========================================================
-       UTILITY
-       ========================================================= */
+    /* =====================================================
+       HELPERS
+       ===================================================== */
 
-    function safePlay(audio) {
-
+    function playSound(audio) {
         if (!audio) return;
 
         try {
+            audio.currentTime = 0;
 
             const promise = audio.play();
 
-            if (promise !== undefined) {
-                promise.catch(() => {
-                    console.log(
-                        "[VOIDSPOKEN] Audio playback blocked by browser."
-                    );
-                });
+            if (promise) {
+                promise.catch(() => {});
             }
-
-        } catch (error) {
-
-            console.log(
-                "[VOIDSPOKEN] Audio unavailable."
-            );
-
-        }
-
+        } catch (error) {}
     }
 
 
-    function vibrate(duration = 15) {
-
-        if ("vibrate" in navigator) {
-            navigator.vibrate(duration);
+    function vibrate(amount = 15) {
+        if (
+            CONFIG.enableHaptics &&
+            navigator.vibrate
+        ) {
+            navigator.vibrate(amount);
         }
-
     }
 
 
-    /* =========================================================
-       AUDIO SYSTEM
-       ========================================================= */
+    /* =====================================================
+       AUDIO
+       ===================================================== */
 
-    const introSound = document.createElement("audio");
+    const introSound =
+        document.createElement("audio");
 
-    introSound.src = CONFIG.intro.sound;
+    introSound.src =
+        CONFIG.introSound;
+
     introSound.preload = "auto";
-    introSound.volume = CONFIG.intro.volume;
-    introSound.setAttribute("playsinline", "");
+    introSound.volume =
+        CONFIG.introVolume;
+
+    introSound.setAttribute(
+        "playsinline",
+        ""
+    );
 
 
-    const hoverSound = document.createElement("audio");
+    const hoverSound =
+        document.createElement("audio");
 
-    hoverSound.src = CONFIG.hover.sound;
+    hoverSound.src =
+        CONFIG.hoverSound;
+
     hoverSound.preload = "auto";
-    hoverSound.volume = CONFIG.hover.volume;
-    hoverSound.setAttribute("playsinline", "");
+    hoverSound.volume =
+        CONFIG.hoverVolume;
+
+    hoverSound.setAttribute(
+        "playsinline",
+        ""
+    );
 
 
-    document.body.appendChild(introSound);
-    document.body.appendChild(hoverSound);
+    document.body.appendChild(
+        introSound
+    );
+
+    document.body.appendChild(
+        hoverSound
+    );
 
 
-    /* =========================================================
-       INTRO SCREEN
-       ========================================================= */
+    /* =====================================================
+       INTRO
+       ===================================================== */
 
-    const intro = document.createElement("div");
+    const intro =
+        document.createElement("div");
 
-    intro.id = "void-intro";
+    intro.id =
+        "void-intro";
+
 
     intro.innerHTML = `
+        <div class="void-intro-grid"></div>
+
+        <div class="void-energy-ring ring-one"></div>
+        <div class="void-energy-ring ring-two"></div>
+        <div class="void-energy-ring ring-three"></div>
+
         <div class="void-intro-content">
+
+            <div class="void-intro-symbol">
+                ◈
+            </div>
+
             <div class="void-intro-title">
                 VOIDSPOKEN
             </div>
@@ -150,205 +161,38 @@
             <div class="void-intro-subtitle">
                 ENTER THE VOID
             </div>
+
+            <div class="void-intro-status">
+                SYSTEM INITIALIZING...
+            </div>
+
         </div>
     `;
 
 
-    Object.assign(intro.style, {
-
-        position: "fixed",
-        inset: "0",
-        zIndex: "100000",
-
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-
-        background: "#000",
-        color: "#fff",
-
-        overflow: "hidden",
-
-        transition:
-            "opacity 1.2s ease, visibility 1.2s ease"
-
-    });
-
-
-    document.body.appendChild(intro);
-
-
-    /* =========================================================
-       INTRO CONTENT
-       ========================================================= */
-
-    const introContent =
-        intro.querySelector(".void-intro-content");
-
-
-    if (introContent) {
-
-        Object.assign(introContent.style, {
-
-            textAlign: "center",
-            position: "relative",
-            zIndex: "2"
-
-        });
-
-    }
-
-
-    const introTitle =
-        intro.querySelector(".void-intro-title");
-
-
-    if (introTitle) {
-
-        Object.assign(introTitle.style, {
-
-            fontSize:
-                "clamp(2rem, 9vw, 7rem)",
-
-            fontWeight: "900",
-
-            letterSpacing:
-                "0.15em",
-
-            color: "#fff",
-
-            textShadow:
-                "0 0 10px rgba(255,0,40,.8), 0 0 40px rgba(255,0,40,.4)",
-
-            animation:
-                "voidIntroPulse 2s infinite alternate"
-
-        });
-
-    }
-
-
-    const introSubtitle =
-        intro.querySelector(".void-intro-subtitle");
-
-
-    if (introSubtitle) {
-
-        Object.assign(introSubtitle.style, {
-
-            marginTop: "15px",
-
-            fontSize:
-                "clamp(.7rem, 2vw, 1rem)",
-
-            letterSpacing:
-                "0.5em",
-
-            color:
-                "rgba(255,255,255,.6)"
-
-        });
-
-    }
-
-
-    /* =========================================================
-       INTRO STYLE
-       ========================================================= */
-
-    const introStyle =
-        document.createElement("style");
-
-
-    introStyle.textContent = `
-
-        @keyframes voidIntroPulse {
-
-            from {
-                opacity: .65;
-                transform: scale(.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1.02);
-            }
-
-        }
-
-
-        #void-intro::before {
-
-            content: "";
-
-            position: absolute;
-
-            inset: 0;
-
-            background:
-                radial-gradient(
-                    circle at center,
-                    rgba(255,0,40,.12),
-                    transparent 55%
-                );
-
-            pointer-events: none;
-
-        }
-
-
-        #void-intro::after {
-
-            content: "";
-
-            position: absolute;
-
-            inset: 0;
-
-            background:
-                repeating-linear-gradient(
-                    0deg,
-                    transparent 0px,
-                    transparent 3px,
-                    rgba(255,255,255,.015) 4px
-                );
-
-            pointer-events: none;
-
-        }
-
-
-        body.void-intro-active {
-            overflow: hidden;
-        }
-
-    `;
-
-
-    document.head.appendChild(introStyle);
+    document.body.appendChild(
+        intro
+    );
 
     document.body.classList.add(
         "void-intro-active"
     );
 
 
-    /* =========================================================
-       INTRO FINISH
-       ========================================================= */
+    /* =====================================================
+       INTRO AUDIO
+       ===================================================== */
 
     function finishIntro() {
 
         if (introFinished) return;
 
         introFinished = true;
-
         introPlaying = false;
 
-
-        intro.style.opacity = "0";
-
-        intro.style.visibility = "hidden";
-
+        intro.classList.add(
+            "void-intro-out"
+        );
 
         document.body.classList.remove(
             "void-intro-active"
@@ -357,118 +201,46 @@
 
         setTimeout(() => {
 
-            if (intro.parentNode) {
-                intro.remove();
-            }
+            intro.remove();
 
-        }, 1200);
-
+        }, 1400);
     }
 
 
-    /* =========================================================
-       START INTRO
-       ========================================================= */
-
-    window.addEventListener("load", () => {
-
-        safePlay(introSound);
-
-
-        setTimeout(() => {
-
-            finishIntro();
-
-        }, CONFIG.intro.duration);
-
-    });
-
-
-    /* =========================================================
-       INTRO AUDIO END
-       ========================================================= */
-
-    introSound.addEventListener(
-        "ended",
+    window.addEventListener(
+        "load",
         () => {
 
-            introPlaying = false;
+            playSound(
+                introSound
+            );
+
+            setTimeout(
+                finishIntro,
+                CONFIG.introDuration
+            );
 
         }
     );
 
 
-    /* =========================================================
+    introSound.addEventListener(
+        "ended",
+        () => {
+            introPlaying = false;
+        }
+    );
+
+
+    /* =====================================================
        NAVIGATION
-       ========================================================= */
+       ===================================================== */
 
-    const navLinks = [
-        ...document.querySelectorAll(
-            CONFIG.selectors.navLinks
-        )
-    ];
+    const navLinks =
+        [...document.querySelectorAll(
+            "nav a"
+        )];
 
-
-    navLinks.forEach(link => {
-
-        link.addEventListener(
-            "click",
-            event => {
-
-                const target =
-                    link.getAttribute("href");
-
-
-                if (
-                    !target ||
-                    !target.startsWith("#")
-                ) {
-                    return;
-                }
-
-
-                const section =
-                    document.querySelector(target);
-
-
-                if (!section) return;
-
-
-                event.preventDefault();
-
-
-                section.scrollIntoView({
-
-                    behavior:
-                        prefersReducedMotion
-                            ? "auto"
-                            : "smooth",
-
-                    block: "start"
-
-                });
-
-
-                if (!introPlaying) {
-
-                    hoverSound.currentTime = 0;
-
-                    safePlay(hoverSound);
-
-                }
-
-
-                vibrate(12);
-
-            }
-        );
-
-    });
-
-
-    /* =========================================================
-       DESKTOP HOVER SOUND
-       ========================================================= */
 
     navLinks.forEach(link => {
 
@@ -478,29 +250,18 @@
 
                 if (introPlaying) return;
 
-
                 if (
-                    event.pointerType !== "mouse"
+                    event.pointerType ===
+                    "mouse"
                 ) {
-                    return;
+                    playSound(
+                        hoverSound
+                    );
                 }
-
-
-                hoverSound.currentTime = 0;
-
-                safePlay(hoverSound);
 
             }
         );
 
-    });
-
-
-    /* =========================================================
-       MOBILE TOUCH SOUND
-       ========================================================= */
-
-    navLinks.forEach(link => {
 
         link.addEventListener(
             "pointerdown",
@@ -508,21 +269,61 @@
 
                 if (introPlaying) return;
 
+                playSound(
+                    hoverSound
+                );
 
-                hoverSound.currentTime = 0;
+                if (
+                    event.pointerType ===
+                    "touch"
+                ) {
+                    vibrate(15);
+                }
 
-                safePlay(hoverSound);
+            }
+        );
+
+
+        link.addEventListener(
+            "click",
+            event => {
+
+                const href =
+                    link.getAttribute(
+                        "href"
+                    );
 
 
                 if (
-                    event.pointerType === "touch"
+                    !href ||
+                    !href.startsWith("#") ||
+                    href === "#"
                 ) {
+                    return;
+                }
 
-                    vibrate(
-                        CONFIG.effects.vibrationDuration
+
+                const target =
+                    document.querySelector(
+                        href
                     );
 
-                }
+
+                if (!target) return;
+
+
+                event.preventDefault();
+
+
+                createSlashEffect();
+
+
+                target.scrollIntoView({
+                    behavior:
+                        reducedMotion
+                            ? "auto"
+                            : "smooth"
+                });
 
             }
         );
@@ -530,75 +331,9 @@
     });
 
 
-    /* =========================================================
+    /* =====================================================
        TOUCH RIPPLE
-       ========================================================= */
-
-    const rippleStyle =
-        document.createElement("style");
-
-
-    rippleStyle.textContent = `
-
-        .void-touch-ripple {
-
-            position: fixed;
-
-            width: 20px;
-            height: 20px;
-
-            border:
-                1px solid rgba(255,0,40,.8);
-
-            border-radius: 50%;
-
-            pointer-events: none;
-
-            transform:
-                translate(-50%, -50%);
-
-            z-index: 99999;
-
-            animation:
-                voidRipple .7s ease-out forwards;
-
-        }
-
-
-        @keyframes voidRipple {
-
-            0% {
-
-                width: 20px;
-                height: 20px;
-
-                opacity: .9;
-
-                box-shadow:
-                    0 0 5px rgba(255,0,40,.7);
-
-            }
-
-
-            100% {
-
-                width: 180px;
-                height: 180px;
-
-                opacity: 0;
-
-                box-shadow:
-                    0 0 50px rgba(255,0,40,0);
-
-            }
-
-        }
-
-    `;
-
-
-    document.head.appendChild(rippleStyle);
-
+       ===================================================== */
 
     document.addEventListener(
         "pointerdown",
@@ -606,97 +341,124 @@
 
             if (introPlaying) return;
 
-
-            const target =
-                event.target;
-
-
             if (
-                target.closest("input") ||
-                target.closest("textarea") ||
-                target.closest("select")
+                event.target.closest(
+                    "input, textarea, select"
+                )
             ) {
                 return;
             }
 
 
-            const ripple =
-                document.createElement("div");
-
-
-            ripple.className =
-                "void-touch-ripple";
-
-
-            ripple.style.left =
-                `${event.clientX}px`;
-
-
-            ripple.style.top =
-                `${event.clientY}px`;
-
-
-            document.body.appendChild(
-                ripple
+            createRipple(
+                event.clientX,
+                event.clientY
             );
-
-
-            setTimeout(() => {
-
-                ripple.remove();
-
-            }, CONFIG.effects.rippleDuration);
 
         }
     );
 
 
-    /* =========================================================
-       MOUSE VOID GLOW
-       ========================================================= */
+    function createRipple(x, y) {
+
+        const ripple =
+            document.createElement(
+                "div"
+            );
+
+
+        ripple.className =
+            "void-ripple";
+
+
+        ripple.style.left =
+            `${x}px`;
+
+        ripple.style.top =
+            `${y}px`;
+
+
+        document.body.appendChild(
+            ripple
+        );
+
+
+        setTimeout(() => {
+
+            ripple.remove();
+
+        }, CONFIG.rippleDuration);
+
+    }
+
+
+    /* =====================================================
+       SLASH TRANSITION
+       ===================================================== */
+
+    function createSlashEffect() {
+
+        if (reducedMotion) return;
+
+
+        const slash =
+            document.createElement(
+                "div"
+            );
+
+
+        slash.className =
+            "void-slash";
+
+
+        document.body.appendChild(
+            slash
+        );
+
+
+        setTimeout(() => {
+
+            slash.remove();
+
+        }, 650);
+
+    }
+
+
+    /* =====================================================
+       MOUSE ENERGY CURSOR
+       ===================================================== */
 
     if (
-        !isTouchDevice &&
-        !prefersReducedMotion
+        !touchDevice &&
+        !reducedMotion
     ) {
 
-        const glow =
-            document.createElement("div");
+        const cursor =
+            document.createElement(
+                "div"
+            );
+
+        cursor.className =
+            "void-cursor";
 
 
-        glow.id =
-            "void-mouse-glow";
+        const cursorCore =
+            document.createElement(
+                "div"
+            );
+
+        cursorCore.className =
+            "void-cursor-core";
 
 
-        Object.assign(glow.style, {
+        document.body.appendChild(
+            cursor
+        );
 
-            position: "fixed",
-
-            left: "0",
-            top: "0",
-
-            width: "300px",
-            height: "300px",
-
-            pointerEvents: "none",
-
-            zIndex: "9998",
-
-            borderRadius: "50%",
-
-            background:
-                "radial-gradient(circle, rgba(255,0,40,.12), transparent 65%)",
-
-            transform:
-                "translate(-50%, -50%)",
-
-            willChange:
-                "transform"
-
-        });
-
-
-        document.body.appendChild(glow);
+        document.body.appendChild(
+            cursorCore
+        );
 
 
         document.addEventListener(
@@ -704,7 +466,8 @@
             event => {
 
                 if (
-                    event.pointerType !== "mouse"
+                    event.pointerType !==
+                    "mouse"
                 ) {
                     return;
                 }
@@ -716,147 +479,154 @@
                 mouseY =
                     event.clientY;
 
-
-                if (!animationFrame) {
-
-                    animationFrame =
-                        requestAnimationFrame(
-                            updateGlow
-                        );
-
-                }
-
             }
         );
 
 
-        function updateGlow() {
+        function animateCursor() {
 
-            glowX +=
-                (mouseX - glowX) * 0.12;
+            targetX +=
+                (mouseX - targetX) *
+                0.18;
+
+            targetY +=
+                (mouseY - targetY) *
+                0.18;
 
 
-            glowY +=
-                (mouseY - glowY) * 0.12;
-
-
-            glow.style.transform =
+            cursor.style.transform =
                 `translate(
-                    ${glowX - 150}px,
-                    ${glowY - 150}px
+                    ${targetX}px,
+                    ${targetY}px
                 )`;
 
 
-            animationFrame = null;
+            cursorCore.style.transform =
+                `translate(
+                    ${mouseX}px,
+                    ${mouseY}px
+                )`;
+
+
+            requestAnimationFrame(
+                animateCursor
+            );
+
+        }
+
+
+        animateCursor();
+
+    }
+
+
+    /* =====================================================
+       PARTICLE SYSTEM
+       ===================================================== */
+
+    if (!reducedMotion) {
+
+        const particleContainer =
+            document.createElement(
+                "div"
+            );
+
+
+        particleContainer.id =
+            "void-particles";
+
+
+        document.body.appendChild(
+            particleContainer
+        );
+
+
+        for (
+            let i = 0;
+            i < CONFIG.particleCount;
+            i++
+        ) {
+
+            createParticle(
+                particleContainer
+            );
 
         }
 
     }
 
 
-    /* =========================================================
-       ACTIVE NAVIGATION
-       ========================================================= */
-
-    const sections = [
-        ...document.querySelectorAll(
-            CONFIG.selectors.sections
-        )
-    ];
-
-
-    if (
-        "IntersectionObserver"
-        in window
+    function createParticle(
+        container
     ) {
 
-        const sectionObserver =
-            new IntersectionObserver(
-                entries => {
-
-                    entries.forEach(
-                        entry => {
-
-                            if (
-                                !entry.isIntersecting
-                            ) {
-                                return;
-                            }
-
-
-                            const id =
-                                entry.target.id;
-
-
-                            navLinks.forEach(
-                                link => {
-
-                                    const href =
-                                        link.getAttribute(
-                                            "href"
-                                        );
-
-
-                                    link.classList.toggle(
-                                        "active",
-                                        href ===
-                                            `#${id}`
-                                    );
-
-                                }
-                            );
-
-                        }
-                    );
-
-                },
-                {
-                    rootMargin:
-                        "-35% 0px -55% 0px",
-
-                    threshold: 0
-                }
+        const particle =
+            document.createElement(
+                "span"
             );
 
 
-        sections.forEach(section => {
+        particle.className =
+            "void-particle";
 
-            sectionObserver.observe(
-                section
-            );
 
-        });
+        const size =
+            Math.random() * 3 + 1;
+
+        const left =
+            Math.random() * 100;
+
+        const duration =
+            Math.random() * 8 + 5;
+
+        const delay =
+            Math.random() * 8;
+
+
+        particle.style.width =
+            `${size}px`;
+
+        particle.style.height =
+            `${size}px`;
+
+        particle.style.left =
+            `${left}%`;
+
+        particle.style.animationDuration =
+            `${duration}s`;
+
+        particle.style.animationDelay =
+            `${delay}s`;
+
+
+        container.appendChild(
+            particle
+        );
 
     }
 
 
-    /* =========================================================
+    /* =====================================================
        SCROLL REVEAL
-       ========================================================= */
+       ===================================================== */
 
-    const revealItems = [
-        ...document.querySelectorAll(
-            `
-            ${CONFIG.selectors.sections},
-            ${CONFIG.selectors.articles}
-            `
-        )
-    ];
+    const revealElements =
+        document.querySelectorAll(
+            "main section, article, .card, .project, .project-card"
+        );
 
 
-    if (!prefersReducedMotion) {
+    if (!reducedMotion) {
 
-        revealItems.forEach(item => {
+        revealElements.forEach(
+            element => {
 
-            item.style.opacity = "0";
+                element.classList.add(
+                    "void-reveal"
+                );
 
-            item.style.transform =
-                "translateY(35px)";
-
-            item.style.transition =
-                "opacity .8s ease, transform .8s ease";
-
-        });
+            }
+        );
 
 
         if (
@@ -878,12 +648,9 @@
                                 }
 
 
-                                entry.target.style.opacity =
-                                    "1";
-
-
-                                entry.target.style.transform =
-                                    "translateY(0)";
+                                entry.target.classList.add(
+                                    "void-visible"
+                                );
 
 
                                 revealObserver.unobserve(
@@ -900,384 +667,281 @@
                 );
 
 
-            revealItems.forEach(item => {
+            revealElements.forEach(
+                element => {
 
-                revealObserver.observe(item);
+                    revealObserver.observe(
+                        element
+                    );
 
-            });
+                }
+            );
 
         }
 
     }
 
 
-    /* =========================================================
-       PROJECT CARD SCAN
-       ========================================================= */
-
-    const projectCards =
-        document.querySelectorAll(
-            ".project-card, .project, .card"
-        );
-
-
-    const cardStyle =
-        document.createElement("style");
-
-
-    cardStyle.textContent = `
-
-        .void-scan-card {
-
-            position: relative;
-
-            overflow: hidden;
-
-        }
-
-
-        .void-scan-card::after {
-
-            content: "";
-
-            position: absolute;
-
-            top: 0;
-
-            left: -120%;
-
-            width: 40%;
-
-            height: 100%;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    transparent,
-                    rgba(255,0,40,.18),
-                    transparent
-                );
-
-            transform:
-                skewX(-20deg);
-
-            pointer-events: none;
-
-        }
-
-
-        .void-scan-card:hover::after {
-
-            animation:
-                voidCardScan .8s ease;
-
-        }
-
-
-        @keyframes voidCardScan {
-
-            from {
-                left: -120%;
-            }
-
-            to {
-                left: 150%;
-            }
-
-        }
-
-    `;
-
-
-    document.head.appendChild(cardStyle);
-
-
-    projectCards.forEach(card => {
-
-        card.classList.add(
-            "void-scan-card"
-        );
-
-    });
-
-
-    /* =========================================================
-       TITLE GLITCH
-       ========================================================= */
-
-    const mainTitle =
-        document.querySelector("h1") ||
-        document.querySelector(".hero h1") ||
-        document.querySelector("header h1");
-
-
-    const glitchStyle =
-        document.createElement("style");
-
-
-    glitchStyle.textContent = `
-
-        .void-glitch {
-
-            animation:
-                voidGlitch .25s linear;
-
-        }
-
-
-        @keyframes voidGlitch {
-
-            0% {
-
-                transform: translate(0);
-
-                text-shadow: none;
-
-            }
-
-
-            20% {
-
-                transform:
-                    translate(-3px, 2px);
-
-                text-shadow:
-                    3px 0 red,
-                    -3px 0 cyan;
-
-            }
-
-
-            40% {
-
-                transform:
-                    translate(3px, -2px);
-
-                text-shadow:
-                    -3px 0 red,
-                    3px 0 cyan;
-
-            }
-
-
-            60% {
-
-                transform:
-                    translate(-2px, 1px);
-
-            }
-
-
-            80% {
-
-                transform:
-                    translate(2px, -1px);
-
-            }
-
-
-            100% {
-
-                transform: translate(0);
-
-                text-shadow: none;
-
-            }
-
-        }
-
-    `;
-
-
-    document.head.appendChild(
-        glitchStyle
-    );
-
+    /* =====================================================
+       CARD TILT
+       ===================================================== */
 
     if (
-        mainTitle &&
-        !prefersReducedMotion
+        !touchDevice &&
+        !reducedMotion
     ) {
 
-        setInterval(() => {
-
-            mainTitle.classList.add(
-                "void-glitch"
+        const cards =
+            document.querySelectorAll(
+                ".card, .project, .project-card"
             );
 
 
-            setTimeout(() => {
+        cards.forEach(card => {
 
-                mainTitle.classList.remove(
+            card.addEventListener(
+                "pointermove",
+                event => {
+
+                    const rect =
+                        card.getBoundingClientRect();
+
+
+                    const x =
+                        event.clientX -
+                        rect.left;
+
+
+                    const y =
+                        event.clientY -
+                        rect.top;
+
+
+                    const rotateY =
+                        ((x / rect.width) - 0.5) *
+                        8;
+
+
+                    const rotateX =
+                        ((y / rect.height) - 0.5) *
+                        -8;
+
+
+                    card.style.transform =
+                        `
+                        perspective(700px)
+                        rotateX(${rotateX}deg)
+                        rotateY(${rotateY}deg)
+                        translateY(-4px)
+                        `;
+
+                }
+            );
+
+
+            card.addEventListener(
+                "pointerleave",
+                () => {
+
+                    card.style.transform =
+                        "";
+
+                }
+            );
+
+        });
+
+    }
+
+
+    /* =====================================================
+       TITLE GLITCH
+       ===================================================== */
+
+    const title =
+        document.querySelector(
+            "h1"
+        );
+
+
+    if (
+        title &&
+        !reducedMotion
+    ) {
+
+        setInterval(
+            () => {
+
+                title.classList.add(
                     "void-glitch"
                 );
 
-            }, 250);
 
-        }, CONFIG.effects.glitchInterval);
+                setTimeout(
+                    () => {
+
+                        title.classList.remove(
+                            "void-glitch"
+                        );
+
+                    },
+                    300
+                );
+
+            },
+            CONFIG.glitchInterval
+        );
 
     }
 
 
-    /* =========================================================
+    /* =====================================================
+       ACTIVE NAVIGATION
+       ===================================================== */
+
+    const sections =
+        document.querySelectorAll(
+            "main section"
+        );
+
+
+    if (
+        "IntersectionObserver"
+        in window
+    ) {
+
+        const navigationObserver =
+            new IntersectionObserver(
+                entries => {
+
+                    entries.forEach(
+                        entry => {
+
+                            if (
+                                !entry.isIntersecting
+                            ) {
+                                return;
+                            }
+
+
+                            const id =
+                                entry.target.id;
+
+
+                            navLinks.forEach(
+                                link => {
+
+                                    link.classList.toggle(
+                                        "active",
+                                        link.getAttribute(
+                                            "href"
+                                        ) ===
+                                        `#${id}`
+                                    );
+
+                                }
+                            );
+
+                        }
+                    );
+
+                },
+                {
+                    rootMargin:
+                        "-40% 0px -50% 0px"
+                }
+            );
+
+
+        sections.forEach(
+            section => {
+
+                navigationObserver.observe(
+                    section
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
        SCROLL PROGRESS
-       ========================================================= */
+       ===================================================== */
 
-    const progressBar =
-        document.createElement("div");
-
-
-    progressBar.id =
-        "void-scroll-progress";
+    const progress =
+        document.createElement(
+            "div"
+        );
 
 
-    Object.assign(progressBar.style, {
-
-        position: "fixed",
-
-        top: "0",
-        left: "0",
-
-        width: "0%",
-
-        height: "2px",
-
-        background: "#ff0028",
-
-        boxShadow:
-            "0 0 10px rgba(255,0,40,.8)",
-
-        zIndex: "99999",
-
-        pointerEvents: "none",
-
-        transition:
-            "width .05s linear"
-
-    });
+    progress.id =
+        "void-progress";
 
 
     document.body.appendChild(
-        progressBar
+        progress
     );
 
 
-    function updateScrollProgress() {
+    function updateProgress() {
 
-        const scrollTop =
-            window.scrollY ||
-            document.documentElement.scrollTop;
+        const scroll =
+            window.scrollY;
 
 
-        const documentHeight =
-            document.documentElement.scrollHeight -
+        const height =
+            document.documentElement
+                .scrollHeight -
             window.innerHeight;
 
 
-        const percentage =
-            documentHeight > 0
-                ? (scrollTop / documentHeight) * 100
+        const percent =
+            height > 0
+                ? (scroll / height) * 100
                 : 0;
 
 
-        progressBar.style.width =
-            `${percentage}%`;
+        progress.style.width =
+            `${percent}%`;
 
     }
 
 
     window.addEventListener(
         "scroll",
-        updateScrollProgress,
+        updateProgress,
         { passive: true }
     );
 
 
-    /* =========================================================
-       SCROLL DEPTH
-       ========================================================= */
-
-    window.addEventListener(
-        "scroll",
-        () => {
-
-            if (prefersReducedMotion) {
-                return;
-            }
-
-
-            const scroll =
-                window.scrollY * 0.08;
-
-
-            document.body.style.backgroundPosition =
-                `center ${scroll}px`;
-
-        },
-        { passive: true }
-    );
-
-
-    /* =========================================================
+    /* =====================================================
        BACK TO TOP
-       ========================================================= */
+       ===================================================== */
 
-    const backTop =
-        document.createElement("button");
-
-
-    backTop.id =
-        "void-back-top";
+    const topButton =
+        document.createElement(
+            "button"
+        );
 
 
-    backTop.textContent =
+    topButton.id =
+        "void-top";
+
+
+    topButton.innerHTML =
         "↑";
 
 
-    backTop.setAttribute(
+    topButton.setAttribute(
         "aria-label",
         "Back to top"
     );
 
 
-    Object.assign(backTop.style, {
-
-        position: "fixed",
-
-        right: "20px",
-        bottom: "20px",
-
-        width: "42px",
-        height: "42px",
-
-        border:
-            "1px solid rgba(255,0,40,.6)",
-
-        borderRadius: "50%",
-
-        background:
-            "rgba(0,0,0,.8)",
-
-        color: "#ff0028",
-
-        fontSize: "20px",
-
-        cursor: "pointer",
-
-        zIndex: "9999",
-
-        opacity: "0",
-
-        visibility: "hidden",
-
-        transition:
-            "opacity .3s ease, visibility .3s ease"
-
-    });
-
-
     document.body.appendChild(
-        backTop
+        topButton
     );
 
 
@@ -1285,48 +949,32 @@
         "scroll",
         () => {
 
-            const visible =
-                window.scrollY > 500;
-
-
-            backTop.style.opacity =
-                visible ? "1" : "0";
-
-
-            backTop.style.visibility =
-                visible
-                    ? "visible"
-                    : "hidden";
+            topButton.classList.toggle(
+                "visible",
+                window.scrollY > 500
+            );
 
         },
         { passive: true }
     );
 
 
-    backTop.addEventListener(
+    topButton.addEventListener(
         "click",
         () => {
 
             window.scrollTo({
-
                 top: 0,
-
                 behavior:
-                    prefersReducedMotion
+                    reducedMotion
                         ? "auto"
                         : "smooth"
-
             });
 
 
-            if (!introPlaying) {
-
-                hoverSound.currentTime = 0;
-
-                safePlay(hoverSound);
-
-            }
-
+            playSound(
+                hoverSound
+            );
 
             vibrate(12);
 
@@ -1334,142 +982,9 @@
     );
 
 
-    /* =========================================================
-       KEYBOARD NAVIGATION
-       ========================================================= */
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            const activeElement =
-                document.activeElement;
-
-
-            const isTyping =
-                activeElement &&
-                (
-                    activeElement.tagName ===
-                        "INPUT" ||
-
-                    activeElement.tagName ===
-                        "TEXTAREA" ||
-
-                    activeElement.tagName ===
-                        "SELECT" ||
-
-                    activeElement.isContentEditable
-                );
-
-
-            if (isTyping) return;
-
-
-            if (event.key === "Home") {
-
-                window.scrollTo({
-
-                    top: 0,
-
-                    behavior:
-                        prefersReducedMotion
-                            ? "auto"
-                            : "smooth"
-
-                });
-
-            }
-
-
-            if (event.key === "End") {
-
-                window.scrollTo({
-
-                    top:
-                        document.documentElement
-                            .scrollHeight,
-
-                    behavior:
-                        prefersReducedMotion
-                            ? "auto"
-                            : "smooth"
-
-                });
-
-            }
-
-        }
-    );
-
-
-    /* =========================================================
-       LAZY IMAGE LOADING
-       ========================================================= */
-
-    document
-        .querySelectorAll(
-            CONFIG.selectors.images
-        )
-        .forEach(img => {
-
-            if (
-                !img.hasAttribute(
-                    "loading"
-                )
-            ) {
-
-                img.setAttribute(
-                    "loading",
-                    "lazy"
-                );
-
-            }
-
-
-            img.addEventListener(
-                "error",
-                () => {
-
-                    img.classList.add(
-                        "void-image-error"
-                    );
-
-                }
-            );
-
-        });
-
-
-    /* =========================================================
-       IMAGE ERROR STYLE
-       ========================================================= */
-
-    const imageStyle =
-        document.createElement("style");
-
-
-    imageStyle.textContent = `
-
-        .void-image-error {
-
-            opacity: .35;
-
-            filter: grayscale(1);
-
-        }
-
-    `;
-
-
-    document.head.appendChild(
-        imageStyle
-    );
-
-
-    /* =========================================================
+    /* =====================================================
        VOID MODE
-       TYPE: V O I D
-       ========================================================= */
+       ===================================================== */
 
     document.addEventListener(
         "keydown",
@@ -1514,86 +1029,55 @@
     );
 
 
-    /* =========================================================
-       VOID MODE FUNCTION
-       ========================================================= */
-
     function activateVoidMode() {
 
-        document.body.classList.toggle(
-            "void-mode"
-        );
-
-
         const active =
-            document.body.classList.contains(
+            document.body.classList.toggle(
                 "void-mode"
             );
 
 
         if (active) {
 
-            document.body.style.filter =
-                "contrast(1.15) saturate(.75)";
+            createVoidExplosion();
 
+            vibrate(40);
 
-            document.documentElement.style.setProperty(
-                "--void-intensity",
-                "1"
+            playSound(
+                hoverSound
             );
 
         } else {
 
-            document.body.style.filter =
-                "";
-
-
-            document.documentElement.style.setProperty(
-                "--void-intensity",
-                "0"
-            );
-
-        }
-
-
-        vibrate(30);
-
-
-        if (!introPlaying) {
-
-            hoverSound.currentTime = 0;
-
-            safePlay(hoverSound);
+            vibrate(20);
 
         }
 
     }
 
 
-    /* =========================================================
+    /* =====================================================
        MOBILE LONG PRESS
-       ========================================================= */
+       ===================================================== */
 
-    let longPressTimer = null;
-
-
-    if (isTouchDevice) {
+    if (touchDevice) {
 
         document.addEventListener(
             "pointerdown",
             () => {
 
-                if (introPlaying) {
-                    return;
-                }
+                if (introPlaying) return;
 
 
                 longPressTimer =
-                    setTimeout(() => {
+                    setTimeout(
+                        () => {
 
-                        activateVoidMode();
+                            activateVoidMode();
 
-                    }, 1200);
+                        },
+                        1200
+                    );
 
             }
         );
@@ -1625,137 +1109,141 @@
     }
 
 
-    /* =========================================================
-       MOBILE INTERACTION FEEDBACK
-       ========================================================= */
+    /* =====================================================
+       VOID EXPLOSION
+       ===================================================== */
+
+    function createVoidExplosion() {
+
+        if (reducedMotion) return;
+
+
+        const explosion =
+            document.createElement(
+                "div"
+            );
+
+
+        explosion.className =
+            "void-explosion";
+
+
+        document.body.appendChild(
+            explosion
+        );
+
+
+        setTimeout(
+            () => {
+
+                explosion.remove();
+
+            },
+            1200
+        );
+
+    }
+
+
+    /* =====================================================
+       KEYBOARD SHORTCUTS
+       ===================================================== */
 
     document.addEventListener(
-        "pointerdown",
+        "keydown",
         event => {
 
-            if (introPlaying) return;
+            const active =
+                document.activeElement;
 
 
             if (
-                event.pointerType !==
-                "touch"
+                active &&
+                (
+                    active.tagName === "INPUT" ||
+                    active.tagName === "TEXTAREA" ||
+                    active.tagName === "SELECT" ||
+                    active.isContentEditable
+                )
             ) {
                 return;
             }
 
 
-            const interactive =
-                event.target.closest(
-                    "a, button, .card, .project, .project-card"
-                );
+            if (
+                event.key === "Home"
+            ) {
 
+                window.scrollTo({
+                    top: 0,
+                    behavior:
+                        reducedMotion
+                            ? "auto"
+                            : "smooth"
+                });
 
-            if (!interactive) {
-                return;
             }
 
 
-            vibrate(10);
+            if (
+                event.key === "End"
+            ) {
+
+                window.scrollTo({
+                    top:
+                        document.documentElement
+                            .scrollHeight,
+                    behavior:
+                        reducedMotion
+                            ? "auto"
+                            : "smooth"
+                });
+
+            }
 
         }
     );
 
 
-    /* =========================================================
-       SMOOTH ANCHOR LINKS
-       ========================================================= */
+    /* =====================================================
+       LAZY IMAGES
+       ===================================================== */
 
     document
-        .querySelectorAll(
-            'a[href^="#"]'
-        )
-        .forEach(link => {
+        .querySelectorAll("img")
+        .forEach(img => {
 
-            link.addEventListener(
-                "click",
-                event => {
+            if (
+                !img.hasAttribute(
+                    "loading"
+                )
+            ) {
 
-                    const id =
-                        link.getAttribute(
-                            "href"
-                        );
+                img.loading =
+                    "lazy";
 
-
-                    if (
-                        !id ||
-                        id === "#"
-                    ) {
-                        return;
-                    }
-
-
-                    const target =
-                        document.querySelector(
-                            id
-                        );
-
-
-                    if (!target) {
-                        return;
-                    }
-
-
-                    event.preventDefault();
-
-
-                    target.scrollIntoView({
-
-                        behavior:
-                            prefersReducedMotion
-                                ? "auto"
-                                : "smooth"
-
-                    });
-
-                }
-            );
+            }
 
         });
 
 
-    /* =========================================================
-       REDUCED MOTION
-       ========================================================= */
-
-    if (prefersReducedMotion) {
-
-        document.documentElement.style
-            .scrollBehavior = "auto";
-
-    }
-
-
-    /* =========================================================
-       CONSOLE SIGNATURE
-       ========================================================= */
+    /* =====================================================
+       CONSOLE
+       ===================================================== */
 
     console.log(
         "%cVOIDSPOKEN",
-        "font-size:28px;font-weight:bold;color:#ff0028;"
+        "font-size:30px;font-weight:bold;color:#ff003c;"
     );
 
-
     console.log(
-        "%cReality is only one branch.",
+        "%cTHE VOID IS WATCHING.",
         "font-size:14px;color:#888;"
     );
 
-
     console.log(
-        "%cNavaneeth Krishnan M. K.",
-        "font-size:12px;color:#aaa;"
+        "%c[ SYSTEM ONLINE ]",
+        "font-size:12px;color:#ff003c;"
     );
-
-
-    console.log(
-        "%c[ VOIDSPOKEN SYSTEM ONLINE ]",
-        "color:#ff0028;font-weight:bold;"
-    );
-
 
 })();
