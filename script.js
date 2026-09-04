@@ -15,7 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     intro.innerHTML = `
         <div id="void-intro-title">VOIDSPOKEN</div>
-        <div id="void-intro-subtitle">ENTER THE VOID</div>
+
+        <div id="void-intro-subtitle">
+            ENTER THE VOID
+        </div>
     `;
 
     document.body.prepend(intro);
@@ -28,44 +31,56 @@ document.addEventListener("DOMContentLoaded", () => {
     const introSound = document.createElement("audio");
 
     introSound.id = "introSound";
-
     introSound.src = "intro.mp3";
-
     introSound.preload = "auto";
-
     introSound.volume = 0.35;
 
     document.body.appendChild(introSound);
 
 
     /* =====================================================
-       TOUCH / CLICK TO START
+       ENTER THE VOID
        ===================================================== */
+
+    const enterVoid =
+        document.querySelector("#void-intro-subtitle");
 
     let introStarted = false;
 
-    function startIntro() {
+
+    function startIntro(event) {
+
+        event.preventDefault();
+        event.stopPropagation();
 
         if (introStarted) return;
 
         introStarted = true;
 
+
+        /* PLAY INTRO SOUND */
+
         introSound.currentTime = 0;
 
-        introSound.play().catch(error => {
+        introSound.play()
+            .then(() => {
+                console.log("VOIDSPOKEN intro sound started.");
+            })
+            .catch(error => {
+                console.log("Audio playback failed:", error);
+            });
 
-            console.log(
-                "Audio playback failed:",
-                error
-            );
 
-        });
+        /* HIDE INTRO */
 
         intro.classList.add("hide");
 
+
         setTimeout(() => {
 
-            intro.remove();
+            if (intro && intro.parentNode) {
+                intro.remove();
+            }
 
         }, 1400);
 
@@ -73,42 +88,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =====================================================
-       TOUCH ANYWHERE ON SCREEN
+       ENTER THE VOID CLICK
        ===================================================== */
 
-    document.addEventListener(
-        "touchstart",
-        startIntro,
-        {
-            once: true,
-            passive: true
-        }
-    );
-
-
-    /* =====================================================
-       MOUSE / DESKTOP SUPPORT
-       ===================================================== */
-
-    document.addEventListener(
+    enterVoid.addEventListener(
         "click",
-        startIntro,
-        {
-            once: true
-        }
+        startIntro
     );
 
 
     /* =====================================================
-       INTRO FALLBACK
+       ENTER THE VOID TOUCH
        ===================================================== */
 
-    /*
-       If the user does not touch the screen,
-       the intro remains visible.
-    */
+    enterVoid.addEventListener(
+        "touchend",
+        startIntro,
+        {
+            passive: false
+        }
+    );
 
-    
+
     /* =====================================================
        SMOOTH NAVIGATION
        ===================================================== */
@@ -127,7 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 !targetID ||
                 !targetID.startsWith("#")
             ) {
-
                 return;
             }
 
@@ -177,12 +177,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         link.classList.remove("active");
 
                         if (
-                            link.getAttribute("href")
-                            === `#${sectionID}`
+                            link.getAttribute("href") ===
+                            `#${sectionID}`
                         ) {
-
                             link.classList.add("active");
-
                         }
 
                     });
@@ -197,9 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     sections.forEach(section => {
-
         navigationObserver.observe(section);
-
     });
 
 
@@ -233,9 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     sections.forEach(section => {
-
         revealObserver.observe(section);
-
     });
 
 
@@ -253,7 +247,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         article.style.transform =
             "translateY(25px)";
-
 
         article.style.transition =
             `opacity 0.7s ease ${index * 0.08}s,
@@ -291,9 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     articles.forEach(article => {
-
         articleObserver.observe(article);
-
     });
 
 
@@ -301,19 +292,17 @@ document.addEventListener("DOMContentLoaded", () => {
        MOUSE GLOW
        ===================================================== */
 
-    const glow = document.createElement("div");
+    const glow =
+        document.createElement("div");
+
+    glow.id = "mouse-glow";
 
     glow.style.position = "fixed";
-
     glow.style.width = "280px";
-
     glow.style.height = "280px";
-
     glow.style.borderRadius = "50%";
-
     glow.style.pointerEvents = "none";
-
-    glow.style.zIndex = "-1";
+    glow.style.zIndex = "0";
 
     glow.style.background =
         "radial-gradient(circle, rgba(180,0,30,0.08), transparent 70%)";
@@ -327,26 +316,29 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(glow);
 
 
-    document.addEventListener("mousemove", event => {
+    document.addEventListener(
+        "mousemove",
+        event => {
 
-        glow.style.left =
-            `${event.clientX}px`;
+            glow.style.left =
+                `${event.clientX}px`;
 
-        glow.style.top =
-            `${event.clientY}px`;
+            glow.style.top =
+                `${event.clientY}px`;
 
-    });
+        }
+    );
 
 
     /* =====================================================
        LINK GLOW SOUND
        ===================================================== */
 
-    const hoverSound = document.createElement("audio");
+    const hoverSound =
+        document.createElement("audio");
 
-    hoverSound.src =
-        "assets/sounds/hover.mp3";
-
+    hoverSound.src = "hover.mp3";
+    hoverSound.preload = "auto";
     hoverSound.volume = 0.08;
 
     document.body.appendChild(hoverSound);
@@ -354,21 +346,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     navLinks.forEach(link => {
 
-        link.addEventListener("mouseenter", () => {
-
-            try {
+        link.addEventListener(
+            "mouseenter",
+            () => {
 
                 hoverSound.currentTime = 0;
 
-                hoverSound.play();
-
-            } catch (error) {
-
-                // Audio may be blocked by browser policy.
+                hoverSound.play().catch(() => {});
 
             }
-
-        });
+        );
 
     });
 
@@ -413,57 +400,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let ticking = false;
 
-    window.addEventListener("scroll", () => {
+    window.addEventListener(
+        "scroll",
+        () => {
 
-        if (!ticking) {
+            if (!ticking) {
 
-            window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
 
-                const scroll =
-                    window.scrollY;
+                    const scroll =
+                        window.scrollY;
 
-                const background =
-                    document.body;
+                    document.body.style.backgroundPosition =
+                        `center ${scroll * 0.03}px`;
 
-                background.style.backgroundPosition =
-                    `center ${scroll * 0.03}px`;
+                    ticking = false;
 
-                ticking = false;
+                });
 
-            });
+                ticking = true;
 
-            ticking = true;
+            }
 
         }
-
-    });
+    );
 
 
     /* =====================================================
        KEYBOARD NAVIGATION
        ===================================================== */
 
-    document.addEventListener("keydown", event => {
+    document.addEventListener(
+        "keydown",
+        event => {
 
-        if (event.key === "Home") {
+            if (event.key === "Home") {
 
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+
+            }
+
+            if (event.key === "End") {
+
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: "smooth"
+                });
+
+            }
 
         }
-
-        if (event.key === "End") {
-
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: "smooth"
-            });
-
-        }
-
-    });
+    );
 
 
     /* =====================================================
@@ -471,6 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
        ===================================================== */
 
     console.log(`
+
 ╔══════════════════════════════════════╗
 ║              VOIDSPOKEN              ║
 ║                                      ║
@@ -478,6 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
 ║                                      ║
 ║       Navaneeth Krishnan M. K.       ║
 ╚══════════════════════════════════════╝
+
     `);
 
 });
