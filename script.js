@@ -1,6 +1,7 @@
 /* =========================================================
    VOIDSPOKEN
    GSAP + THREE.JS + WEBGL + FANTASY BATTLE SYSTEM
+   + ACTION STICK-MAN MOVEMENT ENGINE
 ========================================================= */
 
 
@@ -913,8 +914,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             if (
-                now - lastTap <
-                300
+                now - lastTap < 300
             ) {
 
                 createSlash(
@@ -1039,14 +1039,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         if (
-            Math.random() >
-            0.35
+            Math.random() > 0.35
         ) {
 
             createImpact(
                 x,
                 y
             );
+
+        }
+
+
+        if (voidBattleSystem) {
+
+            voidBattleSystem.triggerAttack();
 
         }
 
@@ -1094,8 +1100,7 @@ document.addEventListener("DOMContentLoaded", () => {
             event => {
 
                 if (
-                    window.innerWidth <
-                    800
+                    window.innerWidth < 800
                 ) {
                     return;
                 }
@@ -1380,8 +1385,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             if (
-                typed.length >
-                4
+                typed.length > 4
             ) {
 
                 typed =
@@ -1431,8 +1435,7 @@ document.addEventListener("DOMContentLoaded", () => {
         () => {
 
             if (
-                window.innerWidth >
-                800
+                window.innerWidth > 800
             ) {
                 return;
             }
@@ -2073,11 +2076,17 @@ function initThree() {
 
 /* =========================================================
    VOIDSPOKEN FANTASY STICK-MAN BATTLE
+   ACTION MOVEMENT ENGINE
 ========================================================= */
 
 function initVoidspokenBattle() {
 
-    const canvas =
+    /*
+       Automatically create the battle canvas if
+       it is not already inside index.html.
+    */
+
+    let canvas =
         document.getElementById(
             "void-battle"
         );
@@ -2085,11 +2094,37 @@ function initVoidspokenBattle() {
 
     if (!canvas) {
 
-        console.warn(
-            "void-battle canvas not found."
-        );
+        canvas =
+            document.createElement(
+                "canvas"
+            );
 
-        return null;
+        canvas.id =
+            "void-battle";
+
+
+        canvas.style.position =
+            "fixed";
+
+        canvas.style.inset =
+            "0";
+
+        canvas.style.width =
+            "100%";
+
+        canvas.style.height =
+            "100%";
+
+        canvas.style.pointerEvents =
+            "none";
+
+        canvas.style.zIndex =
+            "-4";
+
+
+        document.body.appendChild(
+            canvas
+        );
 
     }
 
@@ -2130,6 +2165,13 @@ function initVoidspokenBattle() {
         document.hidden;
 
 
+    let reducedMotion =
+        window.matchMedia &&
+        window.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+
     let lastTime =
         performance.now();
 
@@ -2144,8 +2186,7 @@ function initVoidspokenBattle() {
 
     let nextAction =
         2.5 +
-        Math.random() *
-        2.5;
+        Math.random() * 2.5;
 
 
     let shake =
@@ -2156,8 +2197,82 @@ function initVoidspokenBattle() {
         0;
 
 
+    let hitStop =
+        0;
+
+
     let battleCount =
         0;
+
+
+    let actionCooldown =
+        0;
+
+
+    let currentCombo =
+        0;
+
+
+    /* =====================================================
+       UTILITY
+    ===================================================== */
+
+    function random(min, max) {
+
+        return (
+            min +
+            Math.random() *
+            (max - min)
+        );
+
+    }
+
+
+    function clamp(value, min, max) {
+
+        return Math.max(
+            min,
+            Math.min(
+                max,
+                value
+            )
+        );
+
+    }
+
+
+    function lerp(a, b, t) {
+
+        return a +
+            (b - a) * t;
+
+    }
+
+
+    function easeOut(t) {
+
+        return 1 -
+            Math.pow(
+                1 - t,
+                3
+            );
+
+    }
+
+
+    function easeInOut(t) {
+
+        return (
+            t < 0.5
+                ? 4 * t * t * t
+                : 1 -
+                  Math.pow(
+                      -2 * t + 2,
+                      3
+                  ) / 2
+        );
+
+    }
 
 
     /* =====================================================
@@ -2182,7 +2297,7 @@ function initVoidspokenBattle() {
 
         energy: 1,
 
-        sword: false,
+        sword: true,
 
         pose: 0,
 
@@ -2192,7 +2307,35 @@ function initVoidspokenBattle() {
 
         hit: 0,
 
-        airborne: false
+        airborne: false,
+
+        state: "idle",
+
+        stateTime: 0,
+
+        actionProgress: 0,
+
+        targetX: 0,
+
+        baseY: 0,
+
+        flash: 0,
+
+        dodge: 0,
+
+        block: 0,
+
+        parry: 0,
+
+        combo: 0,
+
+        attackType: "",
+
+        attackCooldown: 0,
+
+        lean: 0,
+
+        bob: 0
 
     };
 
@@ -2215,7 +2358,7 @@ function initVoidspokenBattle() {
 
         energy: 1,
 
-        sword: false,
+        sword: true,
 
         pose: 0,
 
@@ -2225,13 +2368,41 @@ function initVoidspokenBattle() {
 
         hit: 0,
 
-        airborne: false
+        airborne: false,
+
+        state: "idle",
+
+        stateTime: 0,
+
+        actionProgress: 0,
+
+        targetX: 0,
+
+        baseY: 0,
+
+        flash: 0,
+
+        dodge: 0,
+
+        block: 0,
+
+        parry: 0,
+
+        combo: 0,
+
+        attackType: "",
+
+        attackCooldown: 0,
+
+        lean: 0,
+
+        bob: 0
 
     };
 
 
     /* =====================================================
-       PARTICLE SYSTEM
+       EFFECT ARRAYS
     ===================================================== */
 
     const particles = [];
@@ -2239,6 +2410,10 @@ function initVoidspokenBattle() {
     const slashTrails = [];
 
     const shockwaves = [];
+
+    const swordTrails = [];
+
+    const speedLines = [];
 
 
     /* =====================================================
@@ -2302,21 +2477,30 @@ function initVoidspokenBattle() {
         const edge =
             mobile
                 ? Math.min(
-                    58,
-                    width * 0.14
+                    60,
+                    width * 0.15
                 )
                 : Math.min(
-                    115,
-                    width * 0.12
+                    120,
+                    width * 0.13
                 );
 
 
         hero.x =
-            edge;
+            clamp(
+                hero.x || edge,
+                edge,
+                width * 0.42
+            );
 
 
         nullEnemy.x =
-            width - edge;
+            clamp(
+                nullEnemy.x ||
+                    width - edge,
+                width * 0.58,
+                width - edge
+            );
 
 
         const ground =
@@ -2328,12 +2512,22 @@ function initVoidspokenBattle() {
             );
 
 
-        hero.y =
+        hero.baseY =
             ground;
 
 
-        nullEnemy.y =
+        nullEnemy.baseY =
             ground;
+
+
+        if (!hero.airborne) {
+            hero.y = ground;
+        }
+
+
+        if (!nullEnemy.airborne) {
+            nullEnemy.y = ground;
+        }
 
     }
 
@@ -2365,6 +2559,9 @@ function initVoidspokenBattle() {
             nullEnemy.energy =
                 1.7;
 
+            nextAction =
+                0.8;
+
         } else {
 
             hero.energy =
@@ -2379,22 +2576,7 @@ function initVoidspokenBattle() {
 
 
     /* =====================================================
-       RANDOM UTILITY
-    ===================================================== */
-
-    function random(min, max) {
-
-        return (
-            min +
-            Math.random() *
-            (max - min)
-        );
-
-    }
-
-
-    /* =====================================================
-       PARTICLE
+       PARTICLE SYSTEM
     ===================================================== */
 
     function spawnParticle(
@@ -2421,6 +2603,15 @@ function initVoidspokenBattle() {
                 );
 
 
+        const life =
+            options.life !== undefined
+                ? options.life
+                : random(
+                    0.25,
+                    0.7
+                );
+
+
         particles.push({
 
             x,
@@ -2435,19 +2626,9 @@ function initVoidspokenBattle() {
                 Math.sin(angle) *
                 speed,
 
-            life:
-                options.life ||
-                random(
-                    0.25,
-                    0.7
-                ),
+            life,
 
-            maxLife:
-                options.life ||
-                random(
-                    0.25,
-                    0.7
-                ),
+            maxLife: life,
 
             size:
                 options.size ||
@@ -2466,6 +2647,16 @@ function initVoidspokenBattle() {
 
         });
 
+
+        if (particles.length > 650) {
+
+            particles.splice(
+                0,
+                particles.length - 650
+            );
+
+        }
+
     }
 
 
@@ -2483,8 +2674,11 @@ function initVoidspokenBattle() {
         ) {
 
             spawnParticle(
+
                 x,
+
                 y,
+
                 {
 
                     speed:
@@ -2506,6 +2700,7 @@ function initVoidspokenBattle() {
                         )
 
                 }
+
             );
 
         }
@@ -2550,7 +2745,8 @@ function initVoidspokenBattle() {
         x,
         y,
         direction = 1,
-        power = 1
+        power = 1,
+        rotation = null
     ) {
 
         slashTrails.push({
@@ -2574,10 +2770,12 @@ function initVoidspokenBattle() {
                 ) * power,
 
             rotation:
-                random(
-                    -0.6,
-                    0.6
-                ),
+                rotation === null
+                    ? random(
+                        -0.6,
+                        0.6
+                    )
+                    : rotation,
 
             life:
                 0.28,
@@ -2589,11 +2787,52 @@ function initVoidspokenBattle() {
 
 
         burst(
+
             x,
+
             y,
-            voidMode ? 18 : 10,
-            voidMode ? 300 : 210
+
+            voidMode
+                ? 18
+                : 10,
+
+            voidMode
+                ? 300
+                : 210
+
         );
+
+    }
+
+
+    /* =====================================================
+       SWORD TRAIL
+    ===================================================== */
+
+    function createSwordTrail(
+        fighter,
+        angle,
+        power = 1
+    ) {
+
+        swordTrails.push({
+
+            x: fighter.x,
+
+            y: fighter.y - 55,
+
+            angle,
+
+            length:
+                55 * power,
+
+            life:
+                0.22,
+
+            maxLife:
+                0.22
+
+        });
 
     }
 
@@ -2615,6 +2854,9 @@ function initVoidspokenBattle() {
             facing:
                 fighter.facing,
 
+            lean:
+                fighter.lean,
+
             life:
                 0.32,
 
@@ -2625,8 +2867,7 @@ function initVoidspokenBattle() {
 
 
         if (
-            fighter.afterimages.length >
-            5
+            fighter.afterimages.length > 7
         ) {
 
             fighter.afterimages.shift();
@@ -2660,6 +2901,13 @@ function initVoidspokenBattle() {
             );
 
 
+        hitStop =
+            Math.max(
+                hitStop,
+                0.07 * strength
+            );
+
+
         burst(
             x,
             y,
@@ -2680,7 +2928,7 @@ function initVoidspokenBattle() {
 
 
     /* =====================================================
-       DRAW GLOW CIRCLE
+       DRAW GLOW
     ===================================================== */
 
     function drawGlow(
@@ -2728,6 +2976,7 @@ function initVoidspokenBattle() {
 
         ctx.beginPath();
 
+
         ctx.arc(
             x,
             y,
@@ -2735,6 +2984,7 @@ function initVoidspokenBattle() {
             0,
             Math.PI * 2
         );
+
 
         ctx.fill();
 
@@ -2882,7 +3132,7 @@ function initVoidspokenBattle() {
 
 
     /* =====================================================
-       DRAW STICK FIGURE
+       DRAW STICK FIGHTER
     ===================================================== */
 
     function drawFighter(
@@ -2891,8 +3141,12 @@ function initVoidspokenBattle() {
         ghost = false
     ) {
 
+        const mobile =
+            width < 700;
+
+
         const s =
-            width < 700
+            mobile
                 ? 0.72
                 : 1;
 
@@ -2909,12 +3163,36 @@ function initVoidspokenBattle() {
             fighter.facing;
 
 
-        const breathing =
+        let breathing =
             Math.sin(
                 time * 3 +
                 fighter.x
-            ) *
-            2;
+            ) * 2;
+
+
+        let headY =
+            -72 +
+            breathing;
+
+
+        let bodyLean =
+            fighter.lean || 0;
+
+
+        let shoulderY =
+            -42;
+
+
+        let hipY =
+            8;
+
+
+        const state =
+            fighter.state;
+
+
+        const stateTime =
+            fighter.stateTime;
 
 
         const attack =
@@ -2929,21 +3207,35 @@ function initVoidspokenBattle() {
             fighter.airborne;
 
 
+        const walkCycle =
+            Math.sin(
+                time * 9 +
+                fighter.x * 0.01
+            );
+
+
         ctx.save();
 
 
         ctx.translate(
             x,
             y +
-            (airborne
-                ? -45
-                : 0)
+            (
+                airborne
+                    ? -45
+                    : 0
+            )
         );
 
 
         ctx.scale(
             facing * s,
             s
+        );
+
+
+        ctx.rotate(
+            bodyLean * 0.012
         );
 
 
@@ -2958,6 +3250,7 @@ function initVoidspokenBattle() {
         ctx.lineCap =
             "round";
 
+
         ctx.lineJoin =
             "round";
 
@@ -2968,24 +3261,454 @@ function initVoidspokenBattle() {
                 : 4;
 
 
-        /* AURA */
+        /* =================================================
+           AURA
+        ================================================= */
 
         if (!ghost) {
 
             drawAura(
+
                 {
+
                     x: 0,
+
                     y: 55,
+
                     energy:
                         fighter.energy
+
                 },
+
                 time
+
             );
 
         }
 
 
-        /* HEAD */
+        /* =================================================
+           STATE POSES
+        ================================================= */
+
+        let frontArmX = 32;
+        let frontArmY = -8;
+
+        let backArmX = -25;
+        let backArmY = 5;
+
+        let frontLegX = 22;
+        let frontLegY = 52;
+
+        let backLegX = -22;
+        let backLegY = 52;
+
+
+        /* IDLE */
+
+        if (
+            state === "idle"
+        ) {
+
+            frontArmX =
+                32;
+
+            frontArmY =
+                -8;
+
+            backArmX =
+                -25;
+
+            backArmY =
+                5;
+
+        }
+
+
+        /* WALK */
+
+        if (
+            state === "walk"
+        ) {
+
+            frontArmX =
+                30 +
+                walkCycle * 12;
+
+            frontArmY =
+                -8 +
+                Math.abs(
+                    walkCycle
+                ) * 3;
+
+            backArmX =
+                -28 -
+                walkCycle * 12;
+
+            backArmY =
+                5 +
+                Math.abs(
+                    walkCycle
+                ) * 3;
+
+
+            frontLegX =
+                24 +
+                walkCycle * 16;
+
+            backLegX =
+                -24 -
+                walkCycle * 16;
+
+        }
+
+
+        /* RUN */
+
+        if (
+            state === "run"
+        ) {
+
+            frontArmX =
+                38 +
+                walkCycle * 22;
+
+            frontArmY =
+                -18 +
+                walkCycle * 5;
+
+            backArmX =
+                -35 -
+                walkCycle * 22;
+
+            backArmY =
+                0 -
+                walkCycle * 5;
+
+
+            frontLegX =
+                28 +
+                walkCycle * 22;
+
+            backLegX =
+                -28 -
+                walkCycle * 22;
+
+        }
+
+
+        /* DASH */
+
+        if (
+            state === "dash"
+        ) {
+
+            bodyLean =
+                28;
+
+            headY =
+                -70;
+
+            frontArmX =
+                52;
+
+            frontArmY =
+                -22;
+
+            backArmX =
+                -40;
+
+            backArmY =
+                8;
+
+            frontLegX =
+                34;
+
+            frontLegY =
+                42;
+
+            backLegX =
+                -38;
+
+            backLegY =
+                30;
+
+        }
+
+
+        /* ATTACK */
+
+        if (
+            state === "attack"
+        ) {
+
+            bodyLean =
+                12;
+
+            frontArmX =
+                52 +
+                attack * 18;
+
+            frontArmY =
+                -30 -
+                attack * 12;
+
+            backArmX =
+                -28;
+
+            backArmY =
+                10;
+
+            frontLegX =
+                28;
+
+            frontLegY =
+                48;
+
+            backLegX =
+                -25;
+
+            backLegY =
+                55;
+
+        }
+
+
+        /* COMBO */
+
+        if (
+            state === "combo"
+        ) {
+
+            const swing =
+                Math.sin(
+                    stateTime * 18
+                );
+
+
+            bodyLean =
+                swing * 18;
+
+
+            frontArmX =
+                50 +
+                swing * 30;
+
+            frontArmY =
+                -20 +
+                swing * 28;
+
+            backArmX =
+                -32;
+
+            backArmY =
+                0;
+
+
+            frontLegX =
+                35 +
+                swing * 15;
+
+            backLegX =
+                -28 -
+                swing * 15;
+
+        }
+
+
+        /* JUMP */
+
+        if (
+            state === "jump"
+        ) {
+
+            bodyLean =
+                -10;
+
+
+            frontArmX =
+                38;
+
+            frontArmY =
+                -48;
+
+            backArmX =
+                -35;
+
+            backArmY =
+                -35;
+
+
+            frontLegX =
+                35;
+
+            frontLegY =
+                28;
+
+            backLegX =
+                -35;
+
+            backLegY =
+                25;
+
+        }
+
+
+        /* BLOCK */
+
+        if (
+            state === "block"
+        ) {
+
+            frontArmX =
+                18;
+
+            frontArmY =
+                -48;
+
+            backArmX =
+                -5;
+
+            backArmY =
+                -42;
+
+            frontLegX =
+                20;
+
+            backLegX =
+                -20;
+
+        }
+
+
+        /* PARRY */
+
+        if (
+            state === "parry"
+        ) {
+
+            bodyLean =
+                8;
+
+
+            frontArmX =
+                48;
+
+            frontArmY =
+                -45;
+
+            backArmX =
+                -20;
+
+            backArmY =
+                -25;
+
+        }
+
+
+        /* DODGE */
+
+        if (
+            state === "dodge"
+        ) {
+
+            bodyLean =
+                -32;
+
+
+            headY =
+                -60;
+
+
+            frontArmX =
+                35;
+
+            frontArmY =
+                5;
+
+            backArmX =
+                -35;
+
+            backArmY =
+                20;
+
+
+            frontLegX =
+                38;
+
+            frontLegY =
+                38;
+
+            backLegX =
+                -38;
+
+            backLegY =
+                45;
+
+        }
+
+
+        /* KNOCKBACK */
+
+        if (
+            state === "knockback"
+        ) {
+
+            bodyLean =
+                -35;
+
+
+            frontArmX =
+                35;
+
+            frontArmY =
+                20;
+
+            backArmX =
+                -38;
+
+            backArmY =
+                -15;
+
+
+            frontLegX =
+                40;
+
+            frontLegY =
+                45;
+
+            backLegX =
+                -30;
+
+            backLegY =
+                60;
+
+        }
+
+
+        /* RECOVER */
+
+        if (
+            state === "recover"
+        ) {
+
+            bodyLean =
+                lerp(
+                    -25,
+                    0,
+                    clamp(
+                        stateTime * 2,
+                        0,
+                        1
+                    )
+                );
+
+        }
+
+
+        /* =================================================
+           HEAD
+        ================================================= */
 
         ctx.strokeStyle =
             "#080808";
@@ -3001,21 +3724,25 @@ function initVoidspokenBattle() {
 
         ctx.beginPath();
 
+
         ctx.arc(
             0,
-            -72 +
-                breathing,
+            headY,
             15,
             0,
             Math.PI * 2
         );
 
+
         ctx.fill();
+
 
         ctx.stroke();
 
 
-        /* EYES */
+        /* =================================================
+           EYES
+        ================================================= */
 
         ctx.fillStyle =
             "#ff2020";
@@ -3033,28 +3760,30 @@ function initVoidspokenBattle() {
 
         ctx.beginPath();
 
+
         ctx.arc(
             -5,
-            -73 +
-                breathing,
+            headY + 1,
             2.3,
             0,
             Math.PI * 2
         );
+
 
         ctx.fill();
 
 
         ctx.beginPath();
 
+
         ctx.arc(
             5,
-            -73 +
-                breathing,
+            headY + 1,
             2.3,
             0,
             Math.PI * 2
         );
+
 
         ctx.fill();
 
@@ -3063,7 +3792,9 @@ function initVoidspokenBattle() {
             0;
 
 
-        /* BODY */
+        /* =================================================
+           BODY
+        ================================================= */
 
         ctx.strokeStyle =
             ghost
@@ -3071,24 +3802,31 @@ function initVoidspokenBattle() {
                 : "#080808";
 
 
+        ctx.lineWidth =
+            lineWidth;
+
+
         ctx.beginPath();
+
 
         ctx.moveTo(
             0,
-            -57
+            shoulderY
         );
 
 
         ctx.lineTo(
             0,
-            8
+            hipY
         );
 
 
         ctx.stroke();
 
 
-        /* CLOAK / ENERGY TRAIL */
+        /* =================================================
+           CLOAK
+        ================================================= */
 
         if (!ghost) {
 
@@ -3102,6 +3840,7 @@ function initVoidspokenBattle() {
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 0,
                 -45
@@ -3109,14 +3848,57 @@ function initVoidspokenBattle() {
 
 
             ctx.quadraticCurveTo(
+
                 -22 -
-                    Math.sin(time * 4) *
+                    Math.sin(
+                        time * 4
+                    ) *
                     5,
+
                 -10,
+
                 -30 -
-                    Math.sin(time * 3) *
+                    Math.sin(
+                        time * 3
+                    ) *
                     10,
+
                 28
+
+            );
+
+
+            ctx.stroke();
+
+
+            /* EXTRA ENERGY RIBBON */
+
+            ctx.strokeStyle =
+                "rgba(255,0,0,0.18)";
+
+
+            ctx.beginPath();
+
+
+            ctx.moveTo(
+                -5,
+                -35
+            );
+
+
+            ctx.quadraticCurveTo(
+
+                -30,
+                0,
+
+                -45 -
+                    Math.sin(
+                        time * 5
+                    ) *
+                    10,
+
+                35
+
             );
 
 
@@ -3125,57 +3907,18 @@ function initVoidspokenBattle() {
         }
 
 
-        /* ARM POSITION */
+        /* =================================================
+           FRONT ARM
+        ================================================= */
 
-        let frontArmX =
-            32;
+        ctx.strokeStyle =
+            ghost
+                ? "rgba(255,40,40,0.5)"
+                : "#080808";
 
-
-        let frontArmY =
-            -8;
-
-
-        let backArmX =
-            -25;
-
-
-        let backArmY =
-            5;
-
-
-        if (
-            attack > 0
-        ) {
-
-            frontArmX =
-                48 +
-                attack * 18;
-
-
-            frontArmY =
-                -30 -
-                attack * 12;
-
-        }
-
-
-        if (
-            hit > 0
-        ) {
-
-            frontArmX =
-                25;
-
-
-            frontArmY =
-                -30;
-
-        }
-
-
-        /* FRONT ARM */
 
         ctx.beginPath();
+
 
         ctx.moveTo(
             0,
@@ -3192,9 +3935,12 @@ function initVoidspokenBattle() {
         ctx.stroke();
 
 
-        /* BACK ARM */
+        /* =================================================
+           BACK ARM
+        ================================================= */
 
         ctx.beginPath();
+
 
         ctx.moveTo(
             0,
@@ -3211,17 +3957,12 @@ function initVoidspokenBattle() {
         ctx.stroke();
 
 
-        /* LEGS */
-
-        const walk =
-            Math.sin(
-                time * 8 +
-                fighter.x * 0.01
-            ) *
-            7;
-
+        /* =================================================
+           LEGS
+        ================================================= */
 
         ctx.beginPath();
+
 
         ctx.moveTo(
             0,
@@ -3230,9 +3971,8 @@ function initVoidspokenBattle() {
 
 
         ctx.lineTo(
-            -22 +
-                walk,
-            52
+            backLegX,
+            backLegY
         );
 
 
@@ -3241,6 +3981,7 @@ function initVoidspokenBattle() {
 
         ctx.beginPath();
 
+
         ctx.moveTo(
             0,
             8
@@ -3248,20 +3989,63 @@ function initVoidspokenBattle() {
 
 
         ctx.lineTo(
-            22 -
-                walk,
-            52
+            frontLegX,
+            frontLegY
         );
 
 
         ctx.stroke();
 
 
-        /* SWORD */
+        /* =================================================
+           FEET
+        ================================================= */
+
+        ctx.beginPath();
+
+
+        ctx.moveTo(
+            backLegX,
+            backLegY
+        );
+
+
+        ctx.lineTo(
+            backLegX - 8,
+            backLegY
+        );
+
+
+        ctx.stroke();
+
+
+        ctx.beginPath();
+
+
+        ctx.moveTo(
+            frontLegX,
+            frontLegY
+        );
+
+
+        ctx.lineTo(
+            frontLegX + 8,
+            frontLegY
+        );
+
+
+        ctx.stroke();
+
+
+        /* =================================================
+           SWORD
+        ================================================= */
 
         if (
             fighter.sword ||
-            attack > 0
+            attack > 0 ||
+            state === "block" ||
+            state === "parry"
         ) {
 
             ctx.save();
@@ -3272,13 +4056,57 @@ function initVoidspokenBattle() {
 
 
             if (
-                attack > 0.2
+                state === "attack"
             ) {
 
                 swordAngle =
                     -0.8 +
                     attack *
                     2.3;
+
+            }
+
+
+            if (
+                state === "combo"
+            ) {
+
+                swordAngle =
+                    -0.8 +
+                    Math.sin(
+                        stateTime * 18
+                    ) *
+                    2;
+
+            }
+
+
+            if (
+                state === "block"
+            ) {
+
+                swordAngle =
+                    0.3;
+
+            }
+
+
+            if (
+                state === "parry"
+            ) {
+
+                swordAngle =
+                    -1.8;
+
+            }
+
+
+            if (
+                state === "dodge"
+            ) {
+
+                swordAngle =
+                    -1.2;
 
             }
 
@@ -3301,20 +4129,23 @@ function initVoidspokenBattle() {
 
 
             ctx.lineWidth =
-                8;
+                9;
 
 
             ctx.beginPath();
+
 
             ctx.moveTo(
                 0,
                 0
             );
 
+
             ctx.lineTo(
                 0,
-                -75
+                -78
             );
+
 
             ctx.stroke();
 
@@ -3341,21 +4172,52 @@ function initVoidspokenBattle() {
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 0,
                 0
             );
 
+
             ctx.lineTo(
                 0,
-                -75
+                -78
             );
+
 
             ctx.stroke();
 
 
             ctx.shadowBlur =
                 0;
+
+
+            /* EDGE */
+
+            ctx.strokeStyle =
+                "rgba(255,120,120,0.8)";
+
+
+            ctx.lineWidth =
+                1;
+
+
+            ctx.beginPath();
+
+
+            ctx.moveTo(
+                2,
+                -4
+            );
+
+
+            ctx.lineTo(
+                2,
+                -75
+            );
+
+
+            ctx.stroke();
 
 
             /* HANDLE */
@@ -3370,20 +4232,61 @@ function initVoidspokenBattle() {
 
             ctx.beginPath();
 
+
             ctx.moveTo(
                 -7,
                 0
             );
+
 
             ctx.lineTo(
                 7,
                 0
             );
 
+
             ctx.stroke();
 
 
             ctx.restore();
+
+        }
+
+
+        /* =================================================
+           HIT FLASH
+        ================================================= */
+
+        if (
+            fighter.hit > 0 &&
+            !ghost
+        ) {
+
+            ctx.globalAlpha =
+                fighter.hit;
+
+
+            ctx.strokeStyle =
+                "#ffffff";
+
+
+            ctx.lineWidth =
+                3;
+
+
+            ctx.beginPath();
+
+
+            ctx.arc(
+                0,
+                -40,
+                35,
+                0,
+                Math.PI * 2
+            );
+
+
+            ctx.stroke();
 
         }
 
@@ -3394,24 +4297,27 @@ function initVoidspokenBattle() {
 
 
     /* =====================================================
-       DRAW AFTERIMAGES
+       AFTERIMAGES
     ===================================================== */
 
     function drawAfterimages(
-        fighter,
-        time
+        fighter
     ) {
 
         fighter.afterimages.forEach(
             ghost => {
 
+                const alpha =
+                    ghost.life /
+                    ghost.maxLife *
+                    0.32;
+
+
                 ctx.save();
 
 
                 ctx.globalAlpha =
-                    ghost.life /
-                    ghost.maxLife *
-                    0.35;
+                    alpha;
 
 
                 ctx.translate(
@@ -3420,15 +4326,33 @@ function initVoidspokenBattle() {
                 );
 
 
+                ctx.scale(
+                    ghost.facing *
+                    (
+                        width < 700
+                            ? 0.72
+                            : 1
+                    ),
+                    width < 700
+                        ? 0.72
+                        : 1
+                );
+
+
                 ctx.strokeStyle =
-                    "rgba(255,20,20,0.45)";
+                    "rgba(255,20,20,0.55)";
 
 
                 ctx.lineWidth =
                     3;
 
 
+                ctx.lineCap =
+                    "round";
+
+
                 ctx.beginPath();
+
 
                 ctx.arc(
                     0,
@@ -3438,60 +4362,72 @@ function initVoidspokenBattle() {
                     Math.PI * 2
                 );
 
+
                 ctx.stroke();
 
 
                 ctx.beginPath();
+
 
                 ctx.moveTo(
                     0,
                     -57
                 );
 
+
                 ctx.lineTo(
                     0,
                     8
                 );
+
 
                 ctx.moveTo(
                     0,
                     -42
                 );
 
+
                 ctx.lineTo(
-                    28,
+                    30,
                     -8
                 );
+
 
                 ctx.moveTo(
                     0,
                     -40
                 );
 
+
                 ctx.lineTo(
-                    -22,
+                    -25,
                     5
                 );
 
-                ctx.moveTo(
-                    0,
-                    8
-                );
-
-                ctx.lineTo(
-                    -20,
-                    52
-                );
 
                 ctx.moveTo(
                     0,
                     8
                 );
 
+
                 ctx.lineTo(
-                    20,
+                    -24,
                     52
                 );
+
+
+                ctx.moveTo(
+                    0,
+                    8
+                );
+
+
+                ctx.lineTo(
+                    24,
+                    52
+                );
+
 
                 ctx.stroke();
 
@@ -3557,10 +4493,13 @@ function initVoidspokenBattle() {
 
         const gradient =
             ctx.createLinearGradient(
+
                 -slash.length / 2,
                 0,
+
                 slash.length / 2,
                 0
+
             );
 
 
@@ -3600,10 +4539,84 @@ function initVoidspokenBattle() {
 
 
         ctx.quadraticCurveTo(
+
             0,
+
             -slash.height * 2,
+
             slash.length / 2,
+
             0
+
+        );
+
+
+        ctx.stroke();
+
+
+        ctx.restore();
+
+    }
+
+
+    /* =====================================================
+       DRAW SWORD TRAILS
+    ===================================================== */
+
+    function drawSwordTrail(
+        trail
+    ) {
+
+        const progress =
+            1 -
+            trail.life /
+            trail.maxLife;
+
+
+        ctx.save();
+
+
+        ctx.globalAlpha =
+            1 -
+            progress;
+
+
+        ctx.translate(
+            trail.x,
+            trail.y
+        );
+
+
+        ctx.rotate(
+            trail.angle
+        );
+
+
+        ctx.strokeStyle =
+            "rgba(255,30,30,0.7)";
+
+
+        ctx.shadowColor =
+            "#ff0000";
+
+
+        ctx.shadowBlur =
+            15;
+
+
+        ctx.lineWidth =
+            7;
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            0,
+            0,
+            trail.length,
+            -1.4,
+            0.8
         );
 
 
@@ -3661,6 +4674,7 @@ function initVoidspokenBattle() {
 
         ctx.beginPath();
 
+
         ctx.arc(
             wave.x,
             wave.y,
@@ -3668,6 +4682,7 @@ function initVoidspokenBattle() {
             0,
             Math.PI * 2
         );
+
 
         ctx.stroke();
 
@@ -3712,13 +4727,21 @@ function initVoidspokenBattle() {
 
                 ctx.beginPath();
 
+
                 ctx.arc(
+
                     particle.x,
+
                     particle.y,
+
                     particle.size,
+
                     0,
+
                     Math.PI * 2
+
                 );
+
 
                 ctx.fill();
 
@@ -3732,162 +4755,315 @@ function initVoidspokenBattle() {
 
 
     /* =====================================================
-       CLASH
+       DRAW SPEED LINES
     ===================================================== */
 
-    function swordClash() {
+    function drawSpeedLines() {
 
-        const x =
-            (
-                hero.x +
-                nullEnemy.x
-            ) / 2;
+        speedLines.forEach(
+            line => {
 
-
-        const y =
-            Math.min(
-                hero.y,
-                nullEnemy.y
-            ) -
-            58;
+                const alpha =
+                    line.life /
+                    line.maxLife;
 
 
-        hero.attack =
-            1;
+                ctx.save();
 
 
-        nullEnemy.attack =
-            1;
+                ctx.globalAlpha =
+                    alpha *
+                    0.5;
 
 
-        impact(
-            x,
-            y,
-            voidMode
-                ? 1.5
-                : 1
-        );
+                ctx.strokeStyle =
+                    "rgba(255,30,30,0.7)";
 
 
-        createEnergySlash(
-            x,
-            y,
-            1,
-            voidMode
-                ? 1.5
-                : 1
-        );
+                ctx.lineWidth =
+                    line.width;
 
 
-        createEnergySlash(
-            x,
-            y,
-            -1,
-            voidMode
-                ? 1.5
-                : 1
-        );
+                ctx.beginPath();
 
 
-        hero.vx =
-            -120;
+                ctx.moveTo(
+                    line.x,
+                    line.y
+                );
 
 
-        nullEnemy.vx =
-            120;
+                ctx.lineTo(
+                    line.x +
+                    line.length *
+                    line.direction,
+                    line.y
+                );
 
 
-        hero.hit =
-            0.4;
+                ctx.stroke();
 
 
-        nullEnemy.hit =
-            0.4;
+                ctx.restore();
 
-    }
-
-
-    /* =====================================================
-       HERO DASH
-    ===================================================== */
-
-    function heroDash() {
-
-        hero.sword =
-            true;
-
-
-        hero.attack =
-            0;
-
-
-        hero.vx =
-            voidMode
-                ? 650
-                : 480;
-
-
-        createAfterimage(
-            hero
-        );
-
-
-        createEnergySlash(
-            hero.x,
-            hero.y - 45,
-            1,
-            voidMode
-                ? 1.4
-                : 1
+            }
         );
 
     }
 
 
     /* =====================================================
-       ENEMY DASH
+       SPEED LINE BURST
     ===================================================== */
 
-    function enemyDash() {
+    function createSpeedBurst(
+        fighter
+    ) {
 
-        nullEnemy.sword =
-            true;
-
-
-        nullEnemy.attack =
-            0;
-
-
-        nullEnemy.vx =
+        const amount =
             voidMode
-                ? -650
-                : -480;
+                ? 12
+                : 7;
 
 
-        createAfterimage(
-            nullEnemy
-        );
+        for (
+            let i = 0;
+            i < amount;
+            i++
+        ) {
 
+            speedLines.push({
 
-        createEnergySlash(
-            nullEnemy.x,
-            nullEnemy.y - 45,
-            -1,
-            voidMode
-                ? 1.4
-                : 1
-        );
+                x:
+                    fighter.x +
+                    random(
+                        -20,
+                        20
+                    ),
+
+                y:
+                    fighter.y -
+                    random(
+                        30,
+                        100
+                    ),
+
+                length:
+                    random(
+                        30,
+                        110
+                    ),
+
+                width:
+                    random(
+                        1,
+                        3
+                    ),
+
+                direction:
+                    -fighter.facing,
+
+                life:
+                    random(
+                        0.15,
+                        0.4
+                    ),
+
+                maxLife:
+                    0.4
+
+            });
+
+        }
 
     }
 
 
     /* =====================================================
-       JUMP ATTACK
+       STATE CHANGE
     ===================================================== */
 
-    function jumpAttack(
+    function setState(
         fighter,
-        direction
+        state
+    ) {
+
+        fighter.state =
+            state;
+
+
+        fighter.stateTime =
+            0;
+
+
+        fighter.actionProgress =
+            0;
+
+    }
+
+
+    /* =====================================================
+       IDLE
+    ===================================================== */
+
+    function idle(
+        fighter
+    ) {
+
+        setState(
+            fighter,
+            "idle"
+        );
+
+
+        fighter.vx *= 0.5;
+
+    }
+
+
+    /* =====================================================
+       WALK
+    ===================================================== */
+
+    function walkTo(
+        fighter,
+        target
+    ) {
+
+        fighter.targetX =
+            target;
+
+
+        fighter.facing =
+            fighter.x <
+            target
+                ? 1
+                : -1;
+
+
+        setState(
+            fighter,
+            "walk"
+        );
+
+    }
+
+
+    /* =====================================================
+       RUN
+    ===================================================== */
+
+    function runTo(
+        fighter,
+        target
+    ) {
+
+        fighter.targetX =
+            target;
+
+
+        fighter.facing =
+            fighter.x <
+            target
+                ? 1
+                : -1;
+
+
+        setState(
+            fighter,
+            "run"
+        );
+
+    }
+
+
+    /* =====================================================
+       DASH
+    ===================================================== */
+
+    function dash(
+        fighter,
+        direction,
+        distance
+    ) {
+
+        fighter.facing =
+            direction;
+
+
+        fighter.targetX =
+            clamp(
+                fighter.x +
+                direction *
+                distance,
+
+                width < 700
+                    ? 45
+                    : 70,
+
+                width -
+                (
+                    width < 700
+                        ? 45
+                        : 70
+                )
+
+            );
+
+
+        fighter.vx =
+            direction *
+            (
+                voidMode
+                    ? 720
+                    : 560
+            );
+
+
+        fighter.sword =
+            true;
+
+
+        setState(
+            fighter,
+            "dash"
+        );
+
+
+        createSpeedBurst(
+            fighter
+        );
+
+
+        createAfterimage(
+            fighter
+        );
+
+
+        createEnergySlash(
+
+            fighter.x,
+
+            fighter.y - 55,
+
+            direction,
+
+            voidMode
+                ? 1.4
+                : 1
+
+        );
+
+    }
+
+
+    /* =====================================================
+       JUMP
+    ===================================================== */
+
+    function jump(
+        fighter,
+        direction = 0
     ) {
 
         fighter.airborne =
@@ -3895,7 +5071,9 @@ function initVoidspokenBattle() {
 
 
         fighter.vy =
-            -480;
+            voidMode
+                ? -600
+                : -520;
 
 
         fighter.vx =
@@ -3911,6 +5089,281 @@ function initVoidspokenBattle() {
             true;
 
 
+        setState(
+            fighter,
+            "jump"
+        );
+
+
+        createAfterimage(
+            fighter
+        );
+
+
+        createSpeedBurst(
+            fighter
+        );
+
+    }
+
+
+    /* =====================================================
+       ATTACK
+    ===================================================== */
+
+    function attack(
+        fighter,
+        type = "slash"
+    ) {
+
+        fighter.attack =
+            1;
+
+
+        fighter.sword =
+            true;
+
+
+        fighter.attackType =
+            type;
+
+
+        fighter.attackCooldown =
+            0.35;
+
+
+        setState(
+            fighter,
+            "attack"
+        );
+
+
+        createSwordTrail(
+            fighter,
+            type === "heavy"
+                ? -1
+                : -0.6,
+            type === "heavy"
+                ? 1.5
+                : 1
+        );
+
+
+        createEnergySlash(
+
+            fighter.x +
+            fighter.facing *
+            25,
+
+            fighter.y - 55,
+
+            fighter.facing,
+
+            type === "heavy"
+                ? 1.5
+                : 1
+
+        );
+
+    }
+
+
+    /* =====================================================
+       COMBO ATTACK
+    ===================================================== */
+
+    function comboAttack(
+        fighter
+    ) {
+
+        fighter.combo =
+            3;
+
+
+        fighter.attack =
+            1;
+
+
+        fighter.sword =
+            true;
+
+
+        setState(
+            fighter,
+            "combo"
+        );
+
+
+        currentCombo++;
+
+
+        createSwordTrail(
+            fighter,
+            -0.5,
+            1.2
+        );
+
+
+        createEnergySlash(
+
+            fighter.x,
+
+            fighter.y - 55,
+
+            fighter.facing,
+
+            voidMode
+                ? 1.3
+                : 1
+
+        );
+
+    }
+
+
+    /* =====================================================
+       DODGE
+    ===================================================== */
+
+    function dodge(
+        fighter,
+        direction
+    ) {
+
+        fighter.dodge =
+            0.45;
+
+
+        fighter.facing =
+            direction;
+
+
+        fighter.vx =
+            direction *
+            (
+                voidMode
+                    ? 460
+                    : 360
+            );
+
+
+        setState(
+            fighter,
+            "dodge"
+        );
+
+
+        createAfterimage(
+            fighter
+        );
+
+
+        createSpeedBurst(
+            fighter
+        );
+
+    }
+
+
+    /* =====================================================
+       BLOCK
+    ===================================================== */
+
+    function block(
+        fighter
+    ) {
+
+        fighter.block =
+            0.55;
+
+
+        fighter.vx *=
+            0.2;
+
+
+        setState(
+            fighter,
+            "block"
+        );
+
+    }
+
+
+    /* =====================================================
+       PARRY
+    ===================================================== */
+
+    function parry(
+        fighter
+    ) {
+
+        fighter.parry =
+            0.35;
+
+
+        setState(
+            fighter,
+            "parry"
+        );
+
+
+        burst(
+            fighter.x +
+            fighter.facing * 30,
+
+            fighter.y - 55,
+
+            8,
+
+            160
+        );
+
+    }
+
+
+    /* =====================================================
+       KNOCKBACK
+    ===================================================== */
+
+    function knockback(
+        fighter,
+        direction,
+        power = 300
+    ) {
+
+        fighter.hit =
+            0.75;
+
+
+        fighter.vx =
+            direction *
+            power;
+
+
+        fighter.vy =
+            -random(
+                80,
+                180
+            );
+
+
+        setState(
+            fighter,
+            "knockback"
+        );
+
+
+        fighter.airborne =
+            true;
+
+
+        impact(
+            fighter.x,
+            fighter.y - 55,
+            0.75
+        );
+
+
         createAfterimage(
             fighter
         );
@@ -3919,7 +5372,50 @@ function initVoidspokenBattle() {
 
 
     /* =====================================================
-       TELEPORT
+       LANDING
+    ===================================================== */
+
+    function land(
+        fighter
+    ) {
+
+        fighter.airborne =
+            false;
+
+
+        fighter.vy =
+            0;
+
+
+        fighter.y =
+            fighter.baseY;
+
+
+        createShockwave(
+            fighter.x,
+            fighter.y,
+            45
+        );
+
+
+        burst(
+            fighter.x,
+            fighter.y - 5,
+            8,
+            100
+        );
+
+
+        setState(
+            fighter,
+            "recover"
+        );
+
+    }
+
+
+    /* =====================================================
+       TELEPORT ATTACK
     ===================================================== */
 
     function teleportAttack(
@@ -3931,12 +5427,21 @@ function initVoidspokenBattle() {
             fighter.x;
 
 
+        const offset =
+            target.side === "hero"
+                ? -75
+                : 75;
+
+
         fighter.x =
-            target.x +
-            (
-                target.side === "hero"
-                    ? -55
-                    : 55
+            clamp(
+                target.x +
+                offset,
+
+                40,
+
+                width - 40
+
             );
 
 
@@ -3959,16 +5464,22 @@ function initVoidspokenBattle() {
         burst(
             oldX,
             fighter.y - 50,
-            10,
-            180
+            12,
+            200
         );
 
 
         burst(
             fighter.x,
             fighter.y - 50,
-            16,
-            260
+            18,
+            280
+        );
+
+
+        setState(
+            fighter,
+            "attack"
         );
 
 
@@ -3979,10 +5490,195 @@ function initVoidspokenBattle() {
 
 
     /* =====================================================
-       START BATTLE ACTION
+       SWORD CLASH
+    ===================================================== */
+
+    function swordClash() {
+
+        const x =
+            (
+                hero.x +
+                nullEnemy.x
+            ) / 2;
+
+
+        const y =
+            Math.min(
+                hero.y,
+                nullEnemy.y
+            ) - 58;
+
+
+        hero.sword =
+            true;
+
+
+        nullEnemy.sword =
+            true;
+
+
+        setState(
+            hero,
+            "attack"
+        );
+
+
+        setState(
+            nullEnemy,
+            "attack"
+        );
+
+
+        hero.attack =
+            1;
+
+
+        nullEnemy.attack =
+            1;
+
+
+        impact(
+            x,
+            y,
+            voidMode
+                ? 1.7
+                : 1.2
+        );
+
+
+        createEnergySlash(
+
+            x,
+
+            y,
+
+            1,
+
+            voidMode
+                ? 1.5
+                : 1
+
+        );
+
+
+        createEnergySlash(
+
+            x,
+
+            y,
+
+            -1,
+
+            voidMode
+                ? 1.5
+                : 1
+
+        );
+
+
+        createSwordTrail(
+            hero,
+            -1,
+            1.3
+        );
+
+
+        createSwordTrail(
+            nullEnemy,
+            1,
+            1.3
+        );
+
+
+        hero.vx =
+            -(
+                voidMode
+                    ? 260
+                    : 190
+            );
+
+
+        nullEnemy.vx =
+            voidMode
+                ? 260
+                : 190;
+
+
+        hero.hit =
+            0.4;
+
+
+        nullEnemy.hit =
+            0.4;
+
+
+        createSpeedBurst(
+            hero
+        );
+
+
+        createSpeedBurst(
+            nullEnemy
+        );
+
+    }
+
+
+    /* =====================================================
+       SIMULTANEOUS ATTACK
+    ===================================================== */
+
+    function simultaneousAttack() {
+
+        attack(
+            hero,
+            "heavy"
+        );
+
+
+        attack(
+            nullEnemy,
+            "heavy"
+        );
+
+
+        hero.vx =
+            voidMode
+                ? 280
+                : 220;
+
+
+        nullEnemy.vx =
+            voidMode
+                ? -280
+                : -220;
+
+    }
+
+
+    /* =====================================================
+       START ACTION
     ===================================================== */
 
     function startAction() {
+
+        if (
+            reducedMotion
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            actionCooldown > 0
+        ) {
+
+            return;
+
+        }
+
 
         const distance =
             Math.abs(
@@ -3995,35 +5691,64 @@ function initVoidspokenBattle() {
             Math.random();
 
 
+        actionCooldown =
+            voidMode
+                ? 0.8
+                : 1.3;
+
+
+        /* =================================================
+           FAR DISTANCE
+        ================================================= */
+
         if (
             distance >
-            width * 0.5
+            width * 0.48
         ) {
 
-            phase =
-                "dash";
+            const runner =
+                Math.random() >
+                0.5
+                    ? hero
+                    : nullEnemy;
 
-            phaseTime =
-                0;
 
-            heroDash();
+            const direction =
+                runner === hero
+                    ? 1
+                    : -1;
+
+
+            runTo(
+
+                runner,
+
+                runner === hero
+                    ? nullEnemy.x -
+                      100
+                    : hero.x +
+                      100
+
+            );
+
 
             setTimeout(
                 () => {
 
-                    if (!paused) {
+                    if (
+                        !paused
+                    ) {
 
-                        phase =
-                            "clash";
-
-                        swordClash();
+                        dash(
+                            runner,
+                            direction,
+                            220
+                        );
 
                     }
 
                 },
-                voidMode
-                    ? 500
-                    : 700
+                450
             );
 
 
@@ -4032,103 +5757,331 @@ function initVoidspokenBattle() {
         }
 
 
+        /* =================================================
+           CLASH
+        ================================================= */
+
         if (
-            choice <
-            0.20
+            choice < 0.15
         ) {
 
             phase =
                 "clash";
 
+
             phaseTime =
                 0;
+
 
             swordClash();
 
+
+            return;
+
         }
 
-        else if (
-            choice <
-            0.40
+
+        /* =================================================
+           HERO COMBO
+        ================================================= */
+
+        if (
+            choice < 0.30
         ) {
 
             phase =
-                "hero-slash";
+                "combo";
+
 
             phaseTime =
                 0;
 
-            hero.attack =
-                1;
 
-            createEnergySlash(
-                hero.x,
-                hero.y - 55,
+            dash(
+                hero,
                 1,
-                voidMode
-                    ? 1.4
-                    : 1
+                Math.max(
+                    100,
+                    distance * 0.45
+                )
             );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        !paused
+                    ) {
+
+                        comboAttack(
+                            hero
+                        );
+
+                    }
+
+                },
+                280
+            );
+
+
+            return;
 
         }
 
-        else if (
-            choice <
-            0.60
+
+        /* =================================================
+           ENEMY COMBO
+        ================================================= */
+
+        if (
+            choice < 0.44
         ) {
 
             phase =
-                "enemy-slash";
+                "enemy-combo";
+
 
             phaseTime =
                 0;
 
-            nullEnemy.attack =
-                1;
 
-            createEnergySlash(
-                nullEnemy.x,
-                nullEnemy.y - 55,
+            dash(
+                nullEnemy,
                 -1,
-                voidMode
-                    ? 1.4
-                    : 1
+                Math.max(
+                    100,
+                    distance * 0.45
+                )
             );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        !paused
+                    ) {
+
+                        comboAttack(
+                            nullEnemy
+                        );
+
+                    }
+
+                },
+                280
+            );
+
+
+            return;
 
         }
 
-        else if (
-            choice <
-            0.78
+
+        /* =================================================
+           DODGE + COUNTER
+        ================================================= */
+
+        if (
+            choice < 0.55
+        ) {
+
+            phase =
+                "dodge-counter";
+
+
+            phaseTime =
+                0;
+
+
+            block(
+                nullEnemy
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        !paused
+                    ) {
+
+                        dodge(
+                            nullEnemy,
+                            1
+                        );
+
+                    }
+
+                },
+                260
+            );
+
+
+            setTimeout(
+                () => {
+
+                    if (
+                        !paused
+                    ) {
+
+                        attack(
+                            nullEnemy,
+                            "heavy"
+                        );
+
+                    }
+
+                },
+                550
+            );
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           JUMP ATTACK
+        ================================================= */
+
+        if (
+            choice < 0.67
         ) {
 
             phase =
                 "jump";
 
+
             phaseTime =
                 0;
 
-            jumpAttack(
+
+            jump(
                 hero,
                 1
             );
 
+
+            return;
+
         }
 
-        else {
+
+        /* =================================================
+           ENEMY JUMP
+        ================================================= */
+
+        if (
+            choice < 0.75
+        ) {
+
+            phase =
+                "enemy-jump";
+
+
+            phaseTime =
+                0;
+
+
+            jump(
+                nullEnemy,
+                -1
+            );
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           TELEPORT
+        ================================================= */
+
+        if (
+            choice < 0.84
+        ) {
 
             phase =
                 "teleport";
 
+
             phaseTime =
                 0;
+
 
             teleportAttack(
                 nullEnemy,
                 hero
             );
 
+
+            return;
+
         }
+
+
+        /* =================================================
+           SIMULTANEOUS ATTACK
+        ================================================= */
+
+        if (
+            choice < 0.92
+        ) {
+
+            phase =
+                "simultaneous";
+
+
+            phaseTime =
+                0;
+
+
+            simultaneousAttack();
+
+
+            return;
+
+        }
+
+
+        /* =================================================
+           PARRY
+        ================================================= */
+
+        phase =
+            "parry";
+
+
+        phaseTime =
+            0;
+
+
+        parry(
+            hero
+        );
+
+
+        setTimeout(
+            () => {
+
+                if (
+                    !paused
+                ) {
+
+                    attack(
+                        hero,
+                        "heavy"
+                    );
+
+                }
+
+            },
+            350
+        );
 
     }
 
@@ -4142,40 +6095,39 @@ function initVoidspokenBattle() {
         dt
     ) {
 
-        fighter.x +=
-            fighter.vx *
+        fighter.stateTime +=
             dt;
 
 
-        fighter.vy +=
-            1100 *
-            dt;
-
-
-        if (
-            fighter.airborne
-        ) {
-
-            fighter.y +=
-                fighter.vy *
-                dt;
-
-        }
-
-
-        fighter.vx *=
-            Math.pow(
-                0.001,
+        fighter.attackCooldown =
+            Math.max(
+                0,
+                fighter.attackCooldown -
                 dt
             );
 
 
-        fighter.attack =
+        fighter.dodge =
             Math.max(
                 0,
-                fighter.attack -
-                    dt *
-                    2.2
+                fighter.dodge -
+                dt
+            );
+
+
+        fighter.block =
+            Math.max(
+                0,
+                fighter.block -
+                dt
+            );
+
+
+        fighter.parry =
+            Math.max(
+                0,
+                fighter.parry -
+                dt
             );
 
 
@@ -4183,57 +6135,359 @@ function initVoidspokenBattle() {
             Math.max(
                 0,
                 fighter.hit -
-                    dt *
-                    2
+                dt * 2
             );
 
+
+        fighter.attack =
+            Math.max(
+                0,
+                fighter.attack -
+                dt * 2.8
+            );
+
+
+        /* =================================================
+           STATE MOVEMENT
+        ================================================= */
 
         if (
-            fighter.airborne &&
-            fighter.y >=
-                height * 0.78
+            fighter.state === "walk"
         ) {
 
-            fighter.y =
-                height * 0.78;
+            const difference =
+                fighter.targetX -
+                fighter.x;
 
 
-            fighter.vy =
-                0;
+            const direction =
+                Math.sign(
+                    difference
+                );
 
 
-            fighter.airborne =
-                false;
+            fighter.vx =
+                lerp(
+                    fighter.vx,
+                    direction *
+                    105,
+                    Math.min(
+                        1,
+                        dt * 5
+                    )
+                );
 
 
-            createShockwave(
-                fighter.x,
-                fighter.y,
-                45
-            );
+            if (
+                Math.abs(
+                    difference
+                ) < 15
+            ) {
+
+                idle(
+                    fighter
+                );
+
+            }
 
         }
 
+
+        if (
+            fighter.state === "run"
+        ) {
+
+            const difference =
+                fighter.targetX -
+                fighter.x;
+
+
+            const direction =
+                Math.sign(
+                    difference
+                );
+
+
+            fighter.vx =
+                lerp(
+                    fighter.vx,
+                    direction *
+                    (
+                        voidMode
+                            ? 360
+                            : 280
+                    ),
+                    Math.min(
+                        1,
+                        dt * 5
+                    )
+                );
+
+
+            if (
+                Math.abs(
+                    difference
+                ) < 20
+            ) {
+
+                idle(
+                    fighter
+                );
+
+            }
+
+        }
+
+
+        if (
+            fighter.state === "dash"
+        ) {
+
+            fighter.vx *=
+                Math.pow(
+                    0.025,
+                    dt
+                );
+
+
+            if (
+                Math.abs(
+                    fighter.vx
+                ) > 250
+            ) {
+
+                if (
+                    Math.random() <
+                    dt * 24
+                ) {
+
+                    createAfterimage(
+                        fighter
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        if (
+            fighter.state === "dodge"
+        ) {
+
+            fighter.vx *=
+                Math.pow(
+                    0.025,
+                    dt
+                );
+
+
+            if (
+                fighter.stateTime >
+                0.38
+            ) {
+
+                setState(
+                    fighter,
+                    "recover"
+                );
+
+            }
+
+        }
+
+
+        if (
+            fighter.state === "attack"
+        ) {
+
+            fighter.vx *=
+                Math.pow(
+                    0.08,
+                    dt
+                );
+
+        }
+
+
+        if (
+            fighter.state === "combo"
+        ) {
+
+            fighter.vx *=
+                Math.pow(
+                    0.12,
+                    dt
+                );
+
+
+            if (
+                fighter.stateTime >
+                0.75
+            ) {
+
+                fighter.combo =
+                    0;
+
+                setState(
+                    fighter,
+                    "recover"
+                );
+
+            }
+
+        }
+
+
+        if (
+            fighter.state === "block"
+        ) {
+
+            fighter.vx *=
+                Math.pow(
+                    0.001,
+                    dt
+                );
+
+
+            if (
+                fighter.stateTime >
+                0.55
+            ) {
+
+                setState(
+                    fighter,
+                    "recover"
+                );
+
+            }
+
+        }
+
+
+        if (
+            fighter.state === "parry"
+        ) {
+
+            fighter.vx *=
+                Math.pow(
+                    0.001,
+                    dt
+                );
+
+
+            if (
+                fighter.stateTime >
+                0.4
+            ) {
+
+                setState(
+                    fighter,
+                    "recover"
+                );
+
+            }
+
+        }
+
+
+        if (
+            fighter.state === "knockback"
+        ) {
+
+            fighter.vx *=
+                Math.pow(
+                    0.18,
+                    dt
+                );
+
+        }
+
+
+        /* =================================================
+           POSITION
+        ================================================= */
+
+        fighter.x +=
+            fighter.vx *
+            dt;
+
+
+        /* =================================================
+           AIR PHYSICS
+        ================================================= */
+
+        if (
+            fighter.airborne
+        ) {
+
+            fighter.vy +=
+                1250 *
+                dt;
+
+
+            fighter.y +=
+                fighter.vy *
+                dt;
+
+
+            if (
+                fighter.y >=
+                fighter.baseY
+            ) {
+
+                land(
+                    fighter
+                );
+
+            }
+
+        }
+
+
+        /* =================================================
+           GROUND
+        ================================================= */
 
         if (
             !fighter.airborne
         ) {
 
             fighter.y =
-                height *
-                (
-                    width < 700
-                        ? 0.76
-                        : 0.78
+                fighter.baseY;
+
+        }
+
+
+        /* =================================================
+           FRICTION
+        ================================================= */
+
+        if (
+            fighter.state !==
+            "dash" &&
+            fighter.state !==
+            "dodge"
+        ) {
+
+            fighter.vx *=
+                Math.pow(
+                    0.06,
+                    dt
                 );
 
         }
 
 
+        /* =================================================
+           BOUNDARIES
+        ================================================= */
+
         const margin =
             width < 700
-                ? 40
-                : 75;
+                ? 42
+                : 72;
 
 
         if (
@@ -4244,10 +6498,12 @@ function initVoidspokenBattle() {
             fighter.x =
                 margin;
 
+
             fighter.vx =
                 Math.abs(
                     fighter.vx
-                ) * 0.2;
+                ) *
+                0.25;
 
         }
 
@@ -4262,23 +6518,65 @@ function initVoidspokenBattle() {
                 width -
                 margin;
 
+
             fighter.vx =
                 -Math.abs(
                     fighter.vx
-                ) * 0.2;
+                ) *
+                0.25;
 
         }
 
 
+        /* =================================================
+           FACING
+        ================================================= */
+
+        if (
+            fighter !== hero ||
+            phase !== "teleport"
+        ) {
+
+            if (
+                Math.abs(
+                    nullEnemy.x -
+                    hero.x
+                ) >
+                20
+            ) {
+
+                hero.facing =
+                    hero.x <
+                    nullEnemy.x
+                        ? 1
+                        : -1;
+
+
+                nullEnemy.facing =
+                    nullEnemy.x <
+                    hero.x
+                        ? 1
+                        : -1;
+
+            }
+
+        }
+
+
+        /* =================================================
+           MOVEMENT TRAIL
+        ================================================= */
+
         if (
             Math.abs(
                 fighter.vx
-            ) > 220
+            ) >
+            180
         ) {
 
             if (
                 Math.random() <
-                dt * 14
+                dt * 12
             ) {
 
                 createAfterimage(
@@ -4289,6 +6587,23 @@ function initVoidspokenBattle() {
 
         }
 
+
+        /* =================================================
+           BOBBING
+        ================================================= */
+
+        fighter.bob =
+            Math.sin(
+                performance.now() *
+                0.006
+            ) *
+            (
+                fighter.state ===
+                "idle"
+                    ? 1
+                    : 2
+            );
+
     }
 
 
@@ -4296,7 +6611,9 @@ function initVoidspokenBattle() {
        UPDATE PARTICLES
     ===================================================== */
 
-    function updateParticles(dt) {
+    function updateParticles(
+        dt
+    ) {
 
         for (
             let i =
@@ -4356,7 +6673,9 @@ function initVoidspokenBattle() {
        UPDATE SLASHES
     ===================================================== */
 
-    function updateSlashes(dt) {
+    function updateSlashes(
+        dt
+    ) {
 
         for (
             let i =
@@ -4387,10 +6706,48 @@ function initVoidspokenBattle() {
 
 
     /* =====================================================
+       UPDATE SWORD TRAILS
+    ===================================================== */
+
+    function updateSwordTrails(
+        dt
+    ) {
+
+        for (
+            let i =
+                swordTrails.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            swordTrails[i].life -=
+                dt;
+
+
+            if (
+                swordTrails[i].life <=
+                0
+            ) {
+
+                swordTrails.splice(
+                    i,
+                    1
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
        UPDATE SHOCKWAVES
     ===================================================== */
 
-    function updateShockwaves(dt) {
+    function updateShockwaves(
+        dt
+    ) {
 
         for (
             let i =
@@ -4409,6 +6766,42 @@ function initVoidspokenBattle() {
             ) {
 
                 shockwaves.splice(
+                    i,
+                    1
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       UPDATE SPEED LINES
+    ===================================================== */
+
+    function updateSpeedLines(
+        dt
+    ) {
+
+        for (
+            let i =
+                speedLines.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            speedLines[i].life -=
+                dt;
+
+
+            if (
+                speedLines[i].life <=
+                0
+            ) {
+
+                speedLines.splice(
                     i,
                     1
                 );
@@ -4458,18 +6851,401 @@ function initVoidspokenBattle() {
 
 
     /* =====================================================
+       COMBAT RESOLUTION
+    ===================================================== */
+
+    function resolveCombat() {
+
+        const distance =
+            Math.abs(
+                hero.x -
+                nullEnemy.x
+            );
+
+
+        /* =================================================
+           HERO COMBO
+        ================================================= */
+
+        if (
+            phase === "combo" &&
+            phaseTime > 0.35 &&
+            phaseTime < 0.8
+        ) {
+
+            if (
+                distance <
+                (
+                    voidMode
+                        ? 230
+                        : 190
+                )
+            ) {
+
+                nullEnemy.hit =
+                    0.6;
+
+
+                nullEnemy.vx =
+                    280;
+
+
+                impact(
+                    nullEnemy.x,
+                    nullEnemy.y - 55,
+                    0.8
+                );
+
+
+                phase =
+                    "recovery";
+
+
+                phaseTime =
+                    0;
+
+            }
+
+        }
+
+
+        /* =================================================
+           ENEMY COMBO
+        ================================================= */
+
+        if (
+            phase === "enemy-combo" &&
+            phaseTime > 0.35 &&
+            phaseTime < 0.8
+        ) {
+
+            if (
+                distance <
+                (
+                    voidMode
+                        ? 230
+                        : 190
+                )
+            ) {
+
+                hero.hit =
+                    0.6;
+
+
+                hero.vx =
+                    -280;
+
+
+                impact(
+                    hero.x,
+                    hero.y - 55,
+                    0.8
+                );
+
+
+                phase =
+                    "recovery";
+
+
+                phaseTime =
+                    0;
+
+            }
+
+        }
+
+
+        /* =================================================
+           SIMULTANEOUS ATTACK
+        ================================================= */
+
+        if (
+            phase === "simultaneous" &&
+            phaseTime > 0.35
+        ) {
+
+            if (
+                distance <
+                240
+            ) {
+
+                swordClash();
+
+
+                phase =
+                    "clash";
+
+
+                phaseTime =
+                    0;
+
+            }
+
+        }
+
+
+        /* =================================================
+           JUMP ATTACK
+        ================================================= */
+
+        if (
+            phase === "jump"
+        ) {
+
+            if (
+                hero.airborne &&
+                hero.y <
+                hero.baseY - 160 &&
+                phaseTime >
+                0.45
+            ) {
+
+                createEnergySlash(
+
+                    hero.x,
+
+                    hero.y - 55,
+
+                    hero.facing,
+
+                    voidMode
+                        ? 1.5
+                        : 1.1
+
+                );
+
+            }
+
+
+            if (
+                !hero.airborne &&
+                phaseTime >
+                0.55
+            ) {
+
+                phase =
+                    "recovery";
+
+
+                phaseTime =
+                    0;
+
+            }
+
+        }
+
+
+        /* =================================================
+           ENEMY JUMP
+        ================================================= */
+
+        if (
+            phase === "enemy-jump"
+        ) {
+
+            if (
+                nullEnemy.airborne &&
+                nullEnemy.y <
+                nullEnemy.baseY - 160 &&
+                phaseTime >
+                0.45
+            ) {
+
+                createEnergySlash(
+
+                    nullEnemy.x,
+
+                    nullEnemy.y - 55,
+
+                    nullEnemy.facing,
+
+                    voidMode
+                        ? 1.5
+                        : 1.1
+
+                );
+
+            }
+
+
+            if (
+                !nullEnemy.airborne &&
+                phaseTime >
+                0.55
+            ) {
+
+                phase =
+                    "recovery";
+
+
+                phaseTime =
+                    0;
+
+            }
+
+        }
+
+
+        /* =================================================
+           TELEPORT
+        ================================================= */
+
+        if (
+            phase === "teleport" &&
+            phaseTime >
+            0.3
+        ) {
+
+            impact(
+                hero.x,
+                hero.y - 55,
+                0.9
+            );
+
+
+            hero.hit =
+                0.7;
+
+
+            hero.vx =
+                -300;
+
+
+            phase =
+                "recovery";
+
+
+            phaseTime =
+                0;
+
+        }
+
+
+        /* =================================================
+           DODGE COUNTER
+        ================================================= */
+
+        if (
+            phase === "dodge-counter" &&
+            phaseTime >
+            0.75
+        ) {
+
+            if (
+                distance <
+                220
+            ) {
+
+                hero.hit =
+                    0.65;
+
+
+                hero.vx =
+                    -250;
+
+
+                impact(
+                    hero.x,
+                    hero.y - 55,
+                    0.8
+                );
+
+            }
+
+
+            phase =
+                "recovery";
+
+
+            phaseTime =
+                0;
+
+        }
+
+
+        /* =================================================
+           PARRY
+        ================================================= */
+
+        if (
+            phase === "parry" &&
+            phaseTime >
+            0.4
+        ) {
+
+            if (
+                distance <
+                220
+            ) {
+
+                nullEnemy.hit =
+                    0.8;
+
+
+                nullEnemy.vx =
+                    360;
+
+
+                impact(
+                    nullEnemy.x,
+                    nullEnemy.y - 55,
+                    1
+                );
+
+            }
+
+
+            phase =
+                "recovery";
+
+
+            phaseTime =
+                0;
+
+        }
+
+    }
+
+
+    /* =====================================================
        UPDATE BATTLE
     ===================================================== */
 
-    function updateBattle(dt) {
+    function updateBattle(
+        dt
+    ) {
 
-        if (paused) {
+        if (
+            paused
+        ) {
+
             return;
+
+        }
+
+
+        if (
+            hitStop > 0
+        ) {
+
+            hitStop -=
+                dt;
+
+            return;
+
         }
 
 
         phaseTime +=
             dt;
+
+
+        actionCooldown =
+            Math.max(
+                0,
+                actionCooldown -
+                dt
+            );
 
 
         shake *=
@@ -4483,7 +7259,7 @@ function initVoidspokenBattle() {
             Math.max(
                 0,
                 flash -
-                    dt
+                dt
             );
 
 
@@ -4509,7 +7285,17 @@ function initVoidspokenBattle() {
         );
 
 
+        updateSwordTrails(
+            dt
+        );
+
+
         updateShockwaves(
+            dt
+        );
+
+
+        updateSpeedLines(
             dt
         );
 
@@ -4526,89 +7312,32 @@ function initVoidspokenBattle() {
         );
 
 
-        /* ================================================
-           FACING
+        resolveCombat();
+
+
+        /* =================================================
+           PHASE MANAGEMENT
         ================================================= */
 
         if (
-            phase !==
-            "teleport"
-        ) {
-
-            hero.facing =
-                hero.x <
-                nullEnemy.x
-                    ? 1
-                    : -1;
-
-
-            nullEnemy.facing =
-                nullEnemy.x <
-                hero.x
-                    ? 1
-                    : -1;
-
-        }
-
-
-        /* ================================================
-           COMBAT PHASES
-        ================================================= */
-
-        if (
-            phase ===
-            "dash"
+            phase === "dash"
         ) {
 
             if (
                 phaseTime >
                 (
                     voidMode
-                        ? 0.65
-                        : 0.9
+                        ? 0.55
+                        : 0.75
                 )
             ) {
 
                 swordClash();
 
+
                 phase =
                     "clash";
 
-                phaseTime =
-                    0;
-
-            }
-
-        }
-
-
-        else if (
-            phase ===
-            "hero-slash"
-        ) {
-
-            if (
-                phaseTime >
-                0.25
-            ) {
-
-                nullEnemy.hit =
-                    0.7;
-
-
-                nullEnemy.vx =
-                    260;
-
-
-                impact(
-                    nullEnemy.x,
-                    nullEnemy.y - 55,
-                    0.7
-                );
-
-
-                phase =
-                    "recovery";
 
                 phaseTime =
                     0;
@@ -4619,57 +7348,20 @@ function initVoidspokenBattle() {
 
 
         else if (
-            phase ===
-            "enemy-slash"
+            phase === "clash"
         ) {
 
             if (
                 phaseTime >
-                0.25
-            ) {
-
-                hero.hit =
-                    0.7;
-
-
-                hero.vx =
-                    -260;
-
-
-                impact(
-                    hero.x,
-                    hero.y - 55,
-                    0.7
-                );
-
-
-                phase =
-                    "recovery";
-
-                phaseTime =
-                    0;
-
-            }
-
-        }
-
-
-        else if (
-            phase ===
-            "clash"
-        ) {
-
-            if (
-                phaseTime >
-                0.45
+                0.55
             ) {
 
                 hero.vx =
-                    -200;
+                    -220;
 
 
                 nullEnemy.vx =
-                    200;
+                    220;
 
 
                 hero.attack =
@@ -4683,27 +7375,6 @@ function initVoidspokenBattle() {
                 phase =
                     "recovery";
 
-                phaseTime =
-                    0;
-
-            }
-
-        }
-
-
-        else if (
-            phase ===
-            "jump"
-        ) {
-
-            if (
-                !hero.airborne &&
-                phaseTime >
-                0.5
-            ) {
-
-                phase =
-                    "recovery";
 
                 phaseTime =
                     0;
@@ -4714,60 +7385,25 @@ function initVoidspokenBattle() {
 
 
         else if (
-            phase ===
-            "teleport"
-        ) {
-
-            if (
-                phaseTime >
-                0.4
-            ) {
-
-                impact(
-                    hero.x,
-                    hero.y - 55,
-                    0.9
-                );
-
-
-                hero.hit =
-                    0.7;
-
-
-                hero.vx =
-                    -300;
-
-
-                phase =
-                    "recovery";
-
-                phaseTime =
-                    0;
-
-            }
-
-        }
-
-
-        else if (
-            phase ===
-            "recovery"
+            phase === "recovery"
         ) {
 
             if (
                 phaseTime >
                 (
                     voidMode
-                        ? 0.7
-                        : 1.1
+                        ? 0.65
+                        : 1.0
                 )
             ) {
 
                 phase =
                     "idle";
 
+
                 phaseTime =
                     0;
+
 
                 battleCount++;
 
@@ -4777,9 +7413,119 @@ function initVoidspokenBattle() {
 
 
         else if (
-            phase ===
-            "idle"
+            phase === "combo"
         ) {
+
+            if (
+                phaseTime >
+                0.85
+            ) {
+
+                phase =
+                    "recovery";
+
+
+                phaseTime =
+                    0;
+
+            }
+
+        }
+
+
+        else if (
+            phase === "enemy-combo"
+        ) {
+
+            if (
+                phaseTime >
+                0.85
+            ) {
+
+                phase =
+                    "recovery";
+
+
+                phaseTime =
+                    0;
+
+            }
+
+        }
+
+
+        else if (
+            phase === "simultaneous"
+        ) {
+
+            if (
+                phaseTime >
+                0.7
+            ) {
+
+                phase =
+                    "recovery";
+
+
+                phaseTime =
+                    0;
+
+            }
+
+        }
+
+
+        else if (
+            phase === "idle"
+        ) {
+
+            /*
+               Small natural movement between
+               major attacks.
+            */
+
+            if (
+                Math.random() <
+                dt * 0.08
+            ) {
+
+                const distance =
+                    Math.abs(
+                        hero.x -
+                        nullEnemy.x
+                    );
+
+
+                if (
+                    distance >
+                    width * 0.35
+                ) {
+
+                    if (
+                        hero.x <
+                        nullEnemy.x
+                    ) {
+
+                        walkTo(
+                            hero,
+                            nullEnemy.x -
+                            100
+                        );
+
+                    } else {
+
+                        walkTo(
+                            nullEnemy,
+                            hero.x +
+                            100
+                        );
+
+                    }
+
+                }
+
+            }
+
 
             if (
                 phaseTime >
@@ -4793,16 +7539,74 @@ function initVoidspokenBattle() {
                 nextAction =
                     voidMode
                         ? random(
-                            1.2,
-                            2.4
+                            0.8,
+                            2.0
                         )
                         : random(
-                            2.5,
-                            4.5
+                            2.0,
+                            4.2
                         );
 
 
                 startAction();
+
+            }
+
+        }
+
+
+        /* =================================================
+           KEEP FIGHTERS FROM OVERLAPPING
+        ================================================= */
+
+        const minDistance =
+            width < 700
+                ? 65
+                : 95;
+
+
+        const distance =
+            Math.abs(
+                hero.x -
+                nullEnemy.x
+            );
+
+
+        if (
+            distance <
+            minDistance &&
+            !hero.airborne &&
+            !nullEnemy.airborne
+        ) {
+
+            const push =
+                (
+                    minDistance -
+                    distance
+                ) /
+                2;
+
+
+            if (
+                hero.x <
+                nullEnemy.x
+            ) {
+
+                hero.x -=
+                    push;
+
+
+                nullEnemy.x +=
+                    push;
+
+            } else {
+
+                hero.x +=
+                    push;
+
+
+                nullEnemy.x -=
+                    push;
 
             }
 
@@ -4815,7 +7619,9 @@ function initVoidspokenBattle() {
        DRAW BATTLE
     ===================================================== */
 
-    function drawBattle(time) {
+    function drawBattle(
+        time
+    ) {
 
         ctx.clearRect(
             0,
@@ -4828,7 +7634,9 @@ function initVoidspokenBattle() {
         ctx.save();
 
 
-        /* SCREEN SHAKE */
+        /* =================================================
+           SCREEN SHAKE
+        ================================================= */
 
         if (
             shake >
@@ -4852,7 +7660,7 @@ function initVoidspokenBattle() {
         }
 
 
-        /* ================================================
+        /* =================================================
            EDGE AURAS
         ================================================= */
 
@@ -4871,30 +7679,40 @@ function initVoidspokenBattle() {
 
 
         drawGlow(
+
             heroGlowX,
+
             hero.y - 60,
+
             voidMode
                 ? 130
                 : 95,
+
             voidMode
                 ? 0.12
                 : 0.06
+
         );
 
 
         drawGlow(
+
             enemyGlowX,
+
             nullEnemy.y - 60,
+
             voidMode
                 ? 130
                 : 95,
+
             voidMode
                 ? 0.12
                 : 0.06
+
         );
 
 
-        /* ================================================
+        /* =================================================
            GROUND ENERGY
         ================================================= */
 
@@ -4924,23 +7742,28 @@ function initVoidspokenBattle() {
         ctx.stroke();
 
 
-        /* ================================================
+        /* =================================================
+           DASH LINES
+        ================================================= */
+
+        drawSpeedLines();
+
+
+        /* =================================================
            AFTERIMAGES
         ================================================= */
 
         drawAfterimages(
-            hero,
-            time
+            hero
         );
 
 
         drawAfterimages(
-            nullEnemy,
-            time
+            nullEnemy
         );
 
 
-        /* ================================================
+        /* =================================================
            SHOCKWAVES
         ================================================= */
 
@@ -4949,8 +7772,17 @@ function initVoidspokenBattle() {
         );
 
 
-        /* ================================================
-           SLASHES
+        /* =================================================
+           SWORD TRAILS
+        ================================================= */
+
+        swordTrails.forEach(
+            drawSwordTrail
+        );
+
+
+        /* =================================================
+           ENERGY SLASHES
         ================================================= */
 
         slashTrails.forEach(
@@ -4958,14 +7790,14 @@ function initVoidspokenBattle() {
         );
 
 
-        /* ================================================
+        /* =================================================
            PARTICLES
         ================================================= */
 
         drawParticles();
 
 
-        /* ================================================
+        /* =================================================
            FIGHTERS
         ================================================= */
 
@@ -4981,8 +7813,8 @@ function initVoidspokenBattle() {
         );
 
 
-        /* ================================================
-           VOID CORE BETWEEN THEM
+        /* =================================================
+           CENTER VOID CORE
         ================================================= */
 
         const distance =
@@ -4994,7 +7826,7 @@ function initVoidspokenBattle() {
 
         if (
             distance <
-            width * 0.35
+            width * 0.38
         ) {
 
             const centerX =
@@ -5005,20 +7837,79 @@ function initVoidspokenBattle() {
 
 
             const centerY =
-                hero.y -
+                Math.min(
+                    hero.y,
+                    nullEnemy.y
+                ) -
                 65;
 
 
             drawGlow(
+
                 centerX,
+
                 centerY,
+
                 voidMode
-                    ? 75
-                    : 40,
+                    ? 80
+                    : 45,
+
                 voidMode
-                    ? 0.10
+                    ? 0.12
                     : 0.04
+
             );
+
+
+            /* CENTER ENERGY ORB */
+
+            ctx.save();
+
+
+            ctx.globalCompositeOperation =
+                "lighter";
+
+
+            ctx.strokeStyle =
+                voidMode
+                    ? "rgba(255,30,30,0.65)"
+                    : "rgba(255,30,30,0.35)";
+
+
+            ctx.lineWidth =
+                1.5;
+
+
+            ctx.beginPath();
+
+
+            ctx.arc(
+
+                centerX,
+
+                centerY,
+
+                (
+                    voidMode
+                        ? 25
+                        : 15
+                ) +
+                Math.sin(
+                    time * 8
+                ) *
+                5,
+
+                0,
+
+                Math.PI * 2
+
+            );
+
+
+            ctx.stroke();
+
+
+            ctx.restore();
 
         }
 
@@ -5026,7 +7917,7 @@ function initVoidspokenBattle() {
         ctx.restore();
 
 
-        /* ================================================
+        /* =================================================
            FLASH
         ================================================= */
 
@@ -5098,8 +7989,19 @@ function initVoidspokenBattle() {
         }
 
 
+        if (
+            reducedMotion
+        ) {
+
+            dt *=
+                0.5;
+
+        }
+
+
         const time =
-            now / 1000;
+            now /
+            1000;
 
 
         updateBattle(
@@ -5120,6 +8022,7 @@ function initVoidspokenBattle() {
 
             paused =
                 document.hidden;
+
 
             lastTime =
                 performance.now();
@@ -5142,7 +8045,16 @@ function initVoidspokenBattle() {
         setVoidMode,
 
         triggerAttack:
-            startAction
+            startAction,
+
+        boost: () => {
+
+            voidMode =
+                true;
+
+            startAction();
+
+        }
 
     };
 
