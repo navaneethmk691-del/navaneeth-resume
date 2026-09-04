@@ -1,19 +1,15 @@
 /* =========================================================
    VOIDSPOKEN // VOID REALM ENGINE
-   Interactive effects, audio, particles, navigation,
-   animations, Void Mode and mobile interactions.
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
-    /* -----------------------------------------------------
+    /* =====================================================
        BASIC SETUP
-    ----------------------------------------------------- */
+    ===================================================== */
 
     const body = document.body;
-    const introAudio = document.getElementById("intro-audio");
-    const hoverAudio = document.getElementById("hover-audio");
 
     const reducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
@@ -28,9 +24,49 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastPointerDown = 0;
     let longPressTimer = null;
 
-    /* -----------------------------------------------------
+    /* =====================================================
+       AUDIO SOURCE CONNECTION
+       ===================================================== */
+
+    const INTRO_AUDIO_SRC = "./intro.mp3";
+    const HOVER_AUDIO_SRC = "./hover.mp3";
+
+    let introAudio = document.getElementById("intro-audio");
+    let hoverAudio = document.getElementById("hover-audio");
+
+    /*
+     * Create the audio elements automatically if HTML
+     * does not already contain them.
+     */
+
+    if (!introAudio) {
+        introAudio = document.createElement("audio");
+        introAudio.id = "intro-audio";
+        document.body.appendChild(introAudio);
+    }
+
+    if (!hoverAudio) {
+        hoverAudio = document.createElement("audio");
+        hoverAudio.id = "hover-audio";
+        document.body.appendChild(hoverAudio);
+    }
+
+    /*
+     * CONNECT THE AUDIO FILES
+     */
+
+    introAudio.src = INTRO_AUDIO_SRC;
+    hoverAudio.src = HOVER_AUDIO_SRC;
+
+    introAudio.preload = "auto";
+    hoverAudio.preload = "auto";
+
+    introAudio.load();
+    hoverAudio.load();
+
+    /* =====================================================
        UTILITY
-    ----------------------------------------------------- */
+    ===================================================== */
 
     function vibrate(pattern = 20) {
         if ("vibrate" in navigator) {
@@ -40,7 +76,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function createElement(tag, className, parent = document.body) {
+    function createElement(
+        tag,
+        className = "",
+        parent = document.body
+    ) {
         const element = document.createElement(tag);
 
         if (className) {
@@ -48,17 +88,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         parent.appendChild(element);
+
         return element;
     }
 
-    /* -----------------------------------------------------
+    /* =====================================================
        INTRO SCREEN
-    ----------------------------------------------------- */
+    ===================================================== */
 
     function createIntro() {
-        if (document.getElementById("void-intro")) return;
+        if (document.getElementById("void-intro")) {
+            return document.getElementById("void-intro");
+        }
 
-        const intro = createElement("div", "", document.body);
+        const intro = createElement(
+            "div",
+            "",
+            document.body
+        );
+
         intro.id = "void-intro";
 
         intro.innerHTML = `
@@ -69,7 +117,10 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="void-energy-ring ring-three"></div>
 
             <div class="void-intro-content">
-                <div class="void-intro-symbol">◈</div>
+
+                <div class="void-intro-symbol">
+                    ◈
+                </div>
 
                 <div class="void-intro-title">
                     VOIDSPOKEN
@@ -82,6 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="void-intro-status">
                     INITIALIZING REALITY...
                 </div>
+
             </div>
         `;
 
@@ -90,209 +142,398 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const intro = createIntro();
 
-    function closeIntro() {
-        if (!intro || intro.classList.contains("void-intro-out")) {
-            return;
-        }
+    /* =====================================================
+       CLOSE INTRO
+    ===================================================== */
 
+    let introClosed = false;
+
+    function closeIntro() {
+
+        if (introClosed) return;
+
+        introClosed = true;
         introPlaying = false;
 
-        const status = intro.querySelector(".void-intro-status");
+        const status =
+            intro.querySelector(".void-intro-status");
 
         if (status) {
-            status.textContent = "REALITY SYNCHRONIZED";
+            status.textContent =
+                "REALITY SYNCHRONIZED";
         }
 
         setTimeout(() => {
-            intro.classList.add("void-intro-out");
-        }, reducedMotion ? 100 : 450);
+            intro.classList.add(
+                "void-intro-out"
+            );
+        }, reducedMotion ? 50 : 450);
 
         setTimeout(() => {
-            intro.remove();
+
+            if (intro && intro.parentNode) {
+                intro.remove();
+            }
+
         }, reducedMotion ? 200 : 1800);
     }
 
-    /* -----------------------------------------------------
+    /* =====================================================
        INTRO AUDIO
-    ----------------------------------------------------- */
+    ===================================================== */
 
-    if (introAudio) {
-        introAudio.volume = 0.8;
+    introAudio.volume = 0.8;
 
-        introAudio.addEventListener("ended", () => {
-            closeIntro();
-        });
+    introAudio.addEventListener(
+        "ended",
+        closeIntro
+    );
 
-        introAudio.addEventListener("error", () => {
-            // If the browser cannot load the audio,
-            // the website still needs to function.
-            setTimeout(closeIntro, 1200);
-        });
+    introAudio.addEventListener(
+        "error",
+        () => {
 
-        /*
-         * Browsers frequently block autoplay.
-         * Humanity invented autoplay and then invented
-         * browsers to stop it. Beautiful system.
-         */
-        const startIntroAudio = () => {
-            const promise = introAudio.play();
+            console.warn(
+                "VOIDSPOKEN: intro.mp3 could not be loaded."
+            );
 
-            if (promise && typeof promise.catch === "function") {
-                promise.catch(() => {
-                    setTimeout(closeIntro, 1800);
+            setTimeout(
+                closeIntro,
+                1200
+            );
+        }
+    );
+
+    function startIntroAudio() {
+
+        try {
+
+            const playPromise =
+                introAudio.play();
+
+            if (
+                playPromise &&
+                typeof playPromise.catch ===
+                "function"
+            ) {
+
+                playPromise.catch(() => {
+
+                    /*
+                     * Browser autoplay protection.
+                     */
+
+                    console.warn(
+                        "VOIDSPOKEN: autoplay was blocked."
+                    );
+
+                    setTimeout(
+                        closeIntro,
+                        1800
+                    );
                 });
             }
-        };
 
-        startIntroAudio();
+        } catch (error) {
 
-        // Fallback so a missing/blocked audio file
-        // never traps the visitor on the intro.
-        setTimeout(() => {
-            if (introPlaying) {
-                closeIntro();
-            }
-        }, 7000);
-    } else {
-        setTimeout(closeIntro, 1500);
+            console.warn(
+                "VOIDSPOKEN audio error:",
+                error
+            );
+
+            setTimeout(
+                closeIntro,
+                1500
+            );
+        }
     }
 
-    /* -----------------------------------------------------
-       HOVER / TOUCH SOUND
-    ----------------------------------------------------- */
+    startIntroAudio();
 
-    const soundElements = document.querySelectorAll(
-        "a, button, article, li, th, .interactive, [data-sound]"
-    );
+    /*
+     * Safety timeout.
+     * The intro can never trap the visitor forever.
+     */
+
+    setTimeout(() => {
+
+        if (introPlaying) {
+            closeIntro();
+        }
+
+    }, 7000);
+
+    /* =====================================================
+       HOVER / TOUCH AUDIO SYSTEM
+    ===================================================== */
+
+    const soundElements =
+        document.querySelectorAll(
+            "a, button, article, li, th, .interactive, [data-sound]"
+        );
 
     const soundPool = [];
 
-    if (hoverAudio) {
-        for (let i = 0; i < 4; i++) {
-            const audio = new Audio(hoverAudio.src);
-            audio.preload = "auto";
-            audio.volume = 0.35;
-            soundPool.push(audio);
-        }
+    /*
+     * Multiple audio objects prevent sounds from cutting
+     * each other off when several elements are touched
+     * quickly.
+     */
+
+    for (let i = 0; i < 4; i++) {
+
+        const audio =
+            new Audio(HOVER_AUDIO_SRC);
+
+        audio.preload = "auto";
+        audio.volume = 0.35;
+
+        soundPool.push(audio);
     }
 
     let soundIndex = 0;
 
     function playHoverSound() {
-        if (introPlaying || !soundPool.length) return;
 
-        const audio = soundPool[soundIndex];
+        if (
+            introPlaying ||
+            soundPool.length === 0
+        ) {
+            return;
+        }
 
-        soundIndex = (soundIndex + 1) % soundPool.length;
+        const audio =
+            soundPool[soundIndex];
+
+        soundIndex =
+            (soundIndex + 1) %
+            soundPool.length;
 
         try {
+
             audio.currentTime = 0;
-            audio.play().catch(() => {});
+
+            const promise =
+                audio.play();
+
+            if (
+                promise &&
+                typeof promise.catch ===
+                "function"
+            ) {
+                promise.catch(() => {});
+            }
+
         } catch (_) {}
     }
 
     soundElements.forEach((element) => {
-        /*
-         * Desktop:
-         * pointerenter fires when the pointer enters.
-         */
-        element.addEventListener("pointerenter", (event) => {
-            if (event.pointerType === "mouse") {
-                playHoverSound();
-            }
-        });
 
-        /*
-         * Mobile:
-         * pointerdown replaces hover.
-         */
-        element.addEventListener("pointerdown", (event) => {
-            if (event.pointerType === "touch") {
-                const now = Date.now();
+        /* Desktop hover */
 
-                // Prevent accidental double sound events.
-                if (now - lastPointerDown > 100) {
+        element.addEventListener(
+            "pointerenter",
+            (event) => {
+
+                if (
+                    event.pointerType ===
+                    "mouse"
+                ) {
                     playHoverSound();
                 }
 
-                lastPointerDown = now;
             }
-        });
+        );
+
+        /* Mobile touch */
+
+        element.addEventListener(
+            "pointerdown",
+            (event) => {
+
+                if (
+                    event.pointerType ===
+                    "touch"
+                ) {
+
+                    const now =
+                        Date.now();
+
+                    if (
+                        now -
+                        lastPointerDown >
+                        100
+                    ) {
+                        playHoverSound();
+                    }
+
+                    lastPointerDown =
+                        now;
+                }
+
+            }
+        );
+
     });
 
-    /* -----------------------------------------------------
-       PARTICLE SYSTEM
-    ----------------------------------------------------- */
+    /* =====================================================
+       PARTICLES
+    ===================================================== */
 
     function createParticles() {
-        if (document.getElementById("void-particles")) return;
 
-        const container = createElement("div", "", document.body);
-        container.id = "void-particles";
+        if (
+            document.getElementById(
+                "void-particles"
+            )
+        ) {
+            return;
+        }
 
-        const amount = reducedMotion
-            ? 8
-            : window.innerWidth < 700
-                ? 18
-                : 35;
+        const container =
+            createElement(
+                "div",
+                "",
+                document.body
+            );
 
-        for (let i = 0; i < amount; i++) {
-            const particle = document.createElement("span");
+        container.id =
+            "void-particles";
 
-            particle.className = "void-particle";
+        const amount =
+            reducedMotion
+                ? 8
+                : window.innerWidth < 700
+                    ? 18
+                    : 35;
 
-            const size = Math.random() * 3 + 1;
-            const left = Math.random() * 100;
-            const duration = Math.random() * 12 + 8;
-            const delay = Math.random() * 10;
+        for (
+            let i = 0;
+            i < amount;
+            i++
+        ) {
 
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            particle.style.left = `${left}%`;
-            particle.style.animationDuration = `${duration}s`;
-            particle.style.animationDelay = `-${delay}s`;
+            const particle =
+                document.createElement(
+                    "span"
+                );
 
-            container.appendChild(particle);
+            particle.className =
+                "void-particle";
+
+            const size =
+                Math.random() * 3 + 1;
+
+            const left =
+                Math.random() * 100;
+
+            const duration =
+                Math.random() * 12 + 8;
+
+            const delay =
+                Math.random() * 10;
+
+            particle.style.width =
+                `${size}px`;
+
+            particle.style.height =
+                `${size}px`;
+
+            particle.style.left =
+                `${left}%`;
+
+            particle.style.animationDuration =
+                `${duration}s`;
+
+            particle.style.animationDelay =
+                `-${delay}s`;
+
+            container.appendChild(
+                particle
+            );
         }
     }
 
     createParticles();
 
-    /* -----------------------------------------------------
+    /* =====================================================
        CUSTOM CURSOR
-    ----------------------------------------------------- */
+    ===================================================== */
 
     function createCursor() {
-        if (touchDevice || reducedMotion) return;
-        if (document.querySelector(".void-cursor")) return;
 
-        const cursor = createElement("div", "void-cursor");
-        const core = createElement("div", "void-cursor-core");
+        if (
+            touchDevice ||
+            reducedMotion ||
+            document.querySelector(
+                ".void-cursor"
+            )
+        ) {
+            return;
+        }
+
+        const cursor =
+            createElement(
+                "div",
+                "void-cursor"
+            );
+
+        const core =
+            createElement(
+                "div",
+                "void-cursor-core"
+            );
 
         let mouseX = -50;
         let mouseY = -50;
 
-        let cursorX = mouseX;
-        let cursorY = mouseY;
+        let cursorX = -50;
+        let cursorY = -50;
 
-        document.addEventListener("pointermove", (event) => {
-            if (event.pointerType !== "mouse") return;
+        document.addEventListener(
+            "pointermove",
+            (event) => {
 
-            mouseX = event.clientX;
-            mouseY = event.clientY;
-        });
+                if (
+                    event.pointerType !==
+                    "mouse"
+                ) {
+                    return;
+                }
+
+                mouseX =
+                    event.clientX;
+
+                mouseY =
+                    event.clientY;
+            }
+        );
 
         function animateCursor() {
-            cursorX += (mouseX - cursorX) * 0.15;
-            cursorY += (mouseY - cursorY) * 0.15;
 
-            cursor.style.left = `${cursorX - 12}px`;
-            cursor.style.top = `${cursorY - 12}px`;
+            cursorX +=
+                (mouseX - cursorX) *
+                0.15;
 
-            core.style.left = `${mouseX - 3}px`;
-            core.style.top = `${mouseY - 3}px`;
+            cursorY +=
+                (mouseY - cursorY) *
+                0.15;
 
-            requestAnimationFrame(animateCursor);
+            cursor.style.left =
+                `${cursorX - 12}px`;
+
+            cursor.style.top =
+                `${cursorY - 12}px`;
+
+            core.style.left =
+                `${mouseX - 3}px`;
+
+            core.style.top =
+                `${mouseY - 3}px`;
+
+            requestAnimationFrame(
+                animateCursor
+            );
         }
 
         animateCursor();
@@ -300,233 +541,457 @@ document.addEventListener("DOMContentLoaded", () => {
 
     createCursor();
 
-    /* -----------------------------------------------------
-       RIPPLE EFFECT
-    ----------------------------------------------------- */
+    /* =====================================================
+       RIPPLE
+    ===================================================== */
 
     function createRipple(x, y) {
-        if (reducedMotion) return;
 
-        const ripple = createElement("span", "void-ripple");
+        if (reducedMotion) {
+            return;
+        }
 
-        ripple.style.left = `${x}px`;
-        ripple.style.top = `${y}px`;
+        const ripple =
+            createElement(
+                "span",
+                "void-ripple"
+            );
+
+        ripple.style.left =
+            `${x}px`;
+
+        ripple.style.top =
+            `${y}px`;
 
         setTimeout(() => {
-            ripple.remove();
+
+            if (ripple.parentNode) {
+                ripple.remove();
+            }
+
         }, 800);
     }
 
-    document.addEventListener("pointerdown", (event) => {
-        if (event.pointerType === "mouse" || event.pointerType === "touch") {
-            createRipple(event.clientX, event.clientY);
-        }
-    });
+    document.addEventListener(
+        "pointerdown",
+        (event) => {
 
-    /* -----------------------------------------------------
-       SLASH EFFECT
-    ----------------------------------------------------- */
+            if (
+                event.pointerType ===
+                    "mouse" ||
+                event.pointerType ===
+                    "touch"
+            ) {
+
+                createRipple(
+                    event.clientX,
+                    event.clientY
+                );
+            }
+        }
+    );
+
+    /* =====================================================
+       SLASH
+    ===================================================== */
 
     function createSlash() {
-        if (reducedMotion) return;
 
-        const slash = createElement("div", "void-slash");
+        if (reducedMotion) {
+            return;
+        }
+
+        const slash =
+            createElement(
+                "div",
+                "void-slash"
+            );
 
         setTimeout(() => {
-            slash.remove();
+
+            if (slash.parentNode) {
+                slash.remove();
+            }
+
         }, 750);
     }
 
-    /* -----------------------------------------------------
-       GLITCH EFFECT
-    ----------------------------------------------------- */
+    /* =====================================================
+       GLITCH
+    ===================================================== */
 
-    function glitch(element = body) {
-        if (reducedMotion) return;
+    function glitch(
+        element = body
+    ) {
 
-        element.classList.remove("void-glitch");
+        if (
+            reducedMotion ||
+            !element
+        ) {
+            return;
+        }
 
-        // Force browser to acknowledge the removal
+        element.classList.remove(
+            "void-glitch"
+        );
+
         void element.offsetWidth;
 
-        element.classList.add("void-glitch");
+        element.classList.add(
+            "void-glitch"
+        );
 
         setTimeout(() => {
-            element.classList.remove("void-glitch");
+
+            element.classList.remove(
+                "void-glitch"
+            );
+
         }, 350);
     }
 
-    /* -----------------------------------------------------
-       EXPLOSION EFFECT
-    ----------------------------------------------------- */
+    /* =====================================================
+       EXPLOSION
+    ===================================================== */
 
     function createExplosion() {
-        if (reducedMotion) return;
 
-        const explosion = createElement("div", "void-explosion");
+        if (reducedMotion) {
+            return;
+        }
+
+        const explosion =
+            createElement(
+                "div",
+                "void-explosion"
+            );
 
         setTimeout(() => {
-            explosion.remove();
+
+            if (explosion.parentNode) {
+                explosion.remove();
+            }
+
         }, 1200);
     }
 
-    /* -----------------------------------------------------
+    /* =====================================================
        SECTION REVEAL
-    ----------------------------------------------------- */
+    ===================================================== */
 
-    const sections = document.querySelectorAll("main section");
+    const sections =
+        document.querySelectorAll(
+            "main section"
+        );
 
-    if ("IntersectionObserver" in window) {
-        const sectionObserver = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("visible");
-                    }
-                });
-            },
-            {
-                threshold: 0.12
+    if (
+        "IntersectionObserver"
+        in window
+    ) {
+
+        const sectionObserver =
+            new IntersectionObserver(
+                (entries) => {
+
+                    entries.forEach(
+                        (entry) => {
+
+                            if (
+                                entry.isIntersecting
+                            ) {
+
+                                entry.target.classList.add(
+                                    "visible"
+                                );
+                            }
+
+                        }
+                    );
+
+                },
+                {
+                    threshold: 0.12
+                }
+            );
+
+        sections.forEach(
+            (section) => {
+
+                sectionObserver.observe(
+                    section
+                );
+
             }
         );
 
-        sections.forEach((section) => {
-            sectionObserver.observe(section);
-        });
     } else {
-        sections.forEach((section) => {
-            section.classList.add("visible");
-        });
-    }
 
-    /* -----------------------------------------------------
-       NAVIGATION
-    ----------------------------------------------------- */
+        sections.forEach(
+            (section) => {
 
-    const navLinks = document.querySelectorAll(
-        "nav a[href^='#']"
-    );
+                section.classList.add(
+                    "visible"
+                );
 
-    const sectionMap = new Map();
-
-    navLinks.forEach((link) => {
-        const id = link.getAttribute("href");
-
-        if (!id || id === "#") return;
-
-        const section = document.querySelector(id);
-
-        if (section) {
-            sectionMap.set(section, link);
-        }
-
-        link.addEventListener("click", (event) => {
-            const target = document.querySelector(id);
-
-            if (!target) return;
-
-            event.preventDefault();
-
-            createSlash();
-            playHoverSound();
-
-            target.scrollIntoView({
-                behavior: reducedMotion ? "auto" : "smooth",
-                block: "start"
-            });
-
-            navLinks.forEach((item) => {
-                item.classList.remove("active");
-            });
-
-            link.classList.add("active");
-        });
-    });
-
-    /* -----------------------------------------------------
-       ACTIVE NAV SECTION
-    ----------------------------------------------------- */
-
-    if ("IntersectionObserver" in window) {
-        const navObserver = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (!entry.isIntersecting) return;
-
-                    const link = sectionMap.get(entry.target);
-
-                    if (!link) return;
-
-                    navLinks.forEach((item) => {
-                        item.classList.remove("active");
-                    });
-
-                    link.classList.add("active");
-                });
-            },
-            {
-                threshold: 0.25,
-                rootMargin: "-20% 0px -60% 0px"
             }
         );
-
-        sectionMap.forEach((_, section) => {
-            navObserver.observe(section);
-        });
     }
 
-    /* -----------------------------------------------------
-       CARD TILT
-    ----------------------------------------------------- */
+    /* =====================================================
+       NAVIGATION
+    ===================================================== */
 
-    const cards = document.querySelectorAll(
-        "article, #skills li, #interests li, #coreskills li, #core-skills li, #hobbies li"
+    const navLinks =
+        document.querySelectorAll(
+            "nav a[href^='#']"
+        );
+
+    const sectionMap =
+        new Map();
+
+    navLinks.forEach(
+        (link) => {
+
+            const id =
+                link.getAttribute(
+                    "href"
+                );
+
+            if (
+                !id ||
+                id === "#"
+            ) {
+                return;
+            }
+
+            const section =
+                document.querySelector(
+                    id
+                );
+
+            if (section) {
+
+                sectionMap.set(
+                    section,
+                    link
+                );
+            }
+
+            link.addEventListener(
+                "click",
+                (event) => {
+
+                    const target =
+                        document.querySelector(
+                            id
+                        );
+
+                    if (!target) {
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    createSlash();
+                    playHoverSound();
+
+                    target.scrollIntoView(
+                        {
+                            behavior:
+                                reducedMotion
+                                    ? "auto"
+                                    : "smooth",
+
+                            block:
+                                "start"
+                        }
+                    );
+
+                    navLinks.forEach(
+                        (item) => {
+
+                            item.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+                    link.classList.add(
+                        "active"
+                    );
+                }
+            );
+        }
     );
 
-    if (!touchDevice && !reducedMotion) {
-        cards.forEach((card) => {
-            card.addEventListener("pointermove", (event) => {
-                if (event.pointerType !== "mouse") return;
+    /* =====================================================
+       ACTIVE NAVIGATION
+    ===================================================== */
 
-                const rect = card.getBoundingClientRect();
+    if (
+        "IntersectionObserver"
+        in window
+    ) {
 
-                const x =
-                    (event.clientX - rect.left) / rect.width;
+        const navObserver =
+            new IntersectionObserver(
+                (entries) => {
 
-                const y =
-                    (event.clientY - rect.top) / rect.height;
+                    entries.forEach(
+                        (entry) => {
 
-                const rotateX = (0.5 - y) * 5;
-                const rotateY = (x - 0.5) * 5;
+                            if (
+                                !entry.isIntersecting
+                            ) {
+                                return;
+                            }
 
-                card.style.transform = `
-                    translateY(-6px)
-                    perspective(700px)
-                    rotateX(${rotateX}deg)
-                    rotateY(${rotateY}deg)
-                `;
-            });
+                            const link =
+                                sectionMap.get(
+                                    entry.target
+                                );
 
-            card.addEventListener("pointerleave", () => {
-                card.style.transform = "";
-            });
-        });
+                            if (!link) {
+                                return;
+                            }
+
+                            navLinks.forEach(
+                                (item) => {
+
+                                    item.classList.remove(
+                                        "active"
+                                    );
+
+                                }
+                            );
+
+                            link.classList.add(
+                                "active"
+                            );
+                        }
+                    );
+
+                },
+                {
+                    threshold: 0.25,
+
+                    rootMargin:
+                        "-20% 0px -60% 0px"
+                }
+            );
+
+        sectionMap.forEach(
+            (_, section) => {
+
+                navObserver.observe(
+                    section
+                );
+
+            }
+        );
     }
 
-    /* -----------------------------------------------------
-       SCROLL PROGRESS
-    ----------------------------------------------------- */
+    /* =====================================================
+       CARD TILT
+    ===================================================== */
 
-    const progress = createElement("div", "", document.body);
-    progress.id = "void-progress";
+    const cards =
+        document.querySelectorAll(
+            `
+            article,
+            #skills li,
+            #interests li,
+            #coreskills li,
+            #core-skills li,
+            #hobbies li
+            `
+        );
+
+    if (
+        !touchDevice &&
+        !reducedMotion
+    ) {
+
+        cards.forEach(
+            (card) => {
+
+                card.addEventListener(
+                    "pointermove",
+                    (event) => {
+
+                        if (
+                            event.pointerType !==
+                            "mouse"
+                        ) {
+                            return;
+                        }
+
+                        const rect =
+                            card.getBoundingClientRect();
+
+                        const x =
+                            (event.clientX -
+                                rect.left) /
+                            rect.width;
+
+                        const y =
+                            (event.clientY -
+                                rect.top) /
+                            rect.height;
+
+                        const rotateX =
+                            (0.5 - y) * 5;
+
+                        const rotateY =
+                            (x - 0.5) * 5;
+
+                        card.style.transform =
+                            `
+                            translateY(-6px)
+                            perspective(700px)
+                            rotateX(${rotateX}deg)
+                            rotateY(${rotateY}deg)
+                            `;
+                    }
+                );
+
+                card.addEventListener(
+                    "pointerleave",
+                    () => {
+
+                        card.style.transform =
+                            "";
+                    }
+                );
+            }
+        );
+    }
+
+    /* =====================================================
+       SCROLL PROGRESS
+    ===================================================== */
+
+    const progress =
+        createElement(
+            "div",
+            "",
+            document.body
+        );
+
+    progress.id =
+        "void-progress";
 
     function updateProgress() {
+
         const scrollTop =
             window.scrollY ||
-            document.documentElement.scrollTop;
+            document.documentElement
+                .scrollTop;
 
         const height =
-            document.documentElement.scrollHeight -
+            document.documentElement
+                .scrollHeight -
             window.innerHeight;
 
         const percentage =
@@ -534,107 +999,183 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? (scrollTop / height) * 100
                 : 0;
 
-        progress.style.width = `${percentage}%`;
+        progress.style.width =
+            `${percentage}%`;
     }
 
     window.addEventListener(
         "scroll",
         updateProgress,
-        { passive: true }
+        {
+            passive: true
+        }
     );
 
     updateProgress();
 
-    /* -----------------------------------------------------
+    /* =====================================================
        BACK TO TOP
-    ----------------------------------------------------- */
+    ===================================================== */
 
-    const topButton = createElement("button", "", document.body);
+    const topButton =
+        createElement(
+            "button",
+            "",
+            document.body
+        );
 
-    topButton.id = "void-top";
-    topButton.type = "button";
+    topButton.id =
+        "void-top";
+
+    topButton.type =
+        "button";
+
     topButton.setAttribute(
         "aria-label",
         "Return to top"
     );
-    topButton.innerHTML = "↑";
+
+    topButton.innerHTML =
+        "↑";
 
     function updateTopButton() {
-        if (window.scrollY > window.innerHeight * 0.5) {
-            topButton.classList.add("visible");
+
+        if (
+            window.scrollY >
+            window.innerHeight * 0.5
+        ) {
+
+            topButton.classList.add(
+                "visible"
+            );
+
         } else {
-            topButton.classList.remove("visible");
+
+            topButton.classList.remove(
+                "visible"
+            );
         }
     }
 
     window.addEventListener(
         "scroll",
         updateTopButton,
-        { passive: true }
+        {
+            passive: true
+        }
     );
 
-    topButton.addEventListener("click", () => {
-        createSlash();
-        playHoverSound();
+    topButton.addEventListener(
+        "click",
+        () => {
 
-        window.scrollTo({
-            top: 0,
-            behavior: reducedMotion ? "auto" : "smooth"
-        });
-    });
+            createSlash();
+            playHoverSound();
+
+            window.scrollTo(
+                {
+                    top: 0,
+
+                    behavior:
+                        reducedMotion
+                            ? "auto"
+                            : "smooth"
+                }
+            );
+        }
+    );
 
     updateTopButton();
 
-    /* -----------------------------------------------------
-       PARALLAX EFFECT
-    ----------------------------------------------------- */
+    /* =====================================================
+       PARALLAX
+    ===================================================== */
 
-    if (!touchDevice && !reducedMotion) {
+    if (
+        !touchDevice &&
+        !reducedMotion
+    ) {
+
         let targetX = 0;
         let targetY = 0;
 
         let currentX = 0;
         let currentY = 0;
 
-        document.addEventListener("pointermove", (event) => {
-            if (event.pointerType !== "mouse") return;
+        document.addEventListener(
+            "pointermove",
+            (event) => {
 
-            targetX =
-                (event.clientX / window.innerWidth - 0.5) * 2;
+                if (
+                    event.pointerType !==
+                    "mouse"
+                ) {
+                    return;
+                }
 
-            targetY =
-                (event.clientY / window.innerHeight - 0.5) * 2;
-        });
+                targetX =
+                    (
+                        event.clientX /
+                        window.innerWidth -
+                        0.5
+                    ) * 2;
+
+                targetY =
+                    (
+                        event.clientY /
+                        window.innerHeight -
+                        0.5
+                    ) * 2;
+            }
+        );
 
         function parallax() {
-            currentX += (targetX - currentX) * 0.03;
-            currentY += (targetY - currentY) * 0.03;
 
-            document.documentElement.style.setProperty(
-                "--mouse-x",
-                currentX.toFixed(3)
+            currentX +=
+                (targetX - currentX) *
+                0.03;
+
+            currentY +=
+                (targetY - currentY) *
+                0.03;
+
+            document.documentElement
+                .style.setProperty(
+                    "--mouse-x",
+                    currentX.toFixed(3)
+                );
+
+            document.documentElement
+                .style.setProperty(
+                    "--mouse-y",
+                    currentY.toFixed(3)
+                );
+
+            requestAnimationFrame(
+                parallax
             );
-
-            document.documentElement.style.setProperty(
-                "--mouse-y",
-                currentY.toFixed(3)
-            );
-
-            requestAnimationFrame(parallax);
         }
 
         parallax();
     }
 
-    /* -----------------------------------------------------
+    /* =====================================================
        VOID MODE
-    ----------------------------------------------------- */
+    ===================================================== */
 
-    function toggleVoidMode(force = null) {
+    function toggleVoidMode(
+        force = null
+    ) {
+
         if (force === null) {
-            voidMode = !voidMode;
+
+            voidMode =
+                !voidMode;
+
         } else {
-            voidMode = force;
+
+            voidMode =
+                force;
         }
 
         body.classList.toggle(
@@ -653,74 +1194,130 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         if (voidMode) {
+
             document.title =
                 "VOIDSPOKEN // VOID MODE";
 
             setTimeout(() => {
-                document.title =
-                    "VOIDSPOKEN";
+
+                if (voidMode) {
+                    document.title =
+                        "VOIDSPOKEN";
+                }
+
             }, 2500);
+
         } else {
+
             document.title =
                 "VOIDSPOKEN";
         }
     }
 
-    /* -----------------------------------------------------
-       DESKTOP: TYPE "VOID"
-    ----------------------------------------------------- */
+    /* =====================================================
+       DESKTOP: TYPE VOID
+    ===================================================== */
 
     let typedKeys = "";
     let keyResetTimer = null;
 
-    document.addEventListener("keydown", (event) => {
-        if (event.ctrlKey || event.altKey || event.metaKey) {
+    document.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (
+                event.ctrlKey ||
+                event.altKey ||
+                event.metaKey
+            ) {
+                return;
+            }
+
+            const key =
+                event.key.toUpperCase();
+
+            if (
+                key.length !== 1
+            ) {
+                return;
+            }
+
+            typedKeys += key;
+
+            if (
+                typedKeys.length > 4
+            ) {
+
+                typedKeys =
+                    typedKeys.slice(-4);
+            }
+
+            clearTimeout(
+                keyResetTimer
+            );
+
+            keyResetTimer =
+                setTimeout(
+                    () => {
+
+                        typedKeys = "";
+
+                    },
+                    1800
+                );
+
+            if (
+                typedKeys ===
+                "VOID"
+            ) {
+
+                toggleVoidMode();
+
+                typedKeys = "";
+
+                clearTimeout(
+                    keyResetTimer
+                );
+            }
+        }
+    );
+
+    /* =====================================================
+       MOBILE: LONG PRESS
+    ===================================================== */
+
+    function startLongPress(
+        event
+    ) {
+
+        if (!touchDevice) {
             return;
         }
 
-        const key = event.key.toUpperCase();
+        clearTimeout(
+            longPressTimer
+        );
 
-        if (key.length !== 1) return;
+        longPressTimer =
+            setTimeout(
+                () => {
 
-        typedKeys += key;
+                    toggleVoidMode();
 
-        if (typedKeys.length > 4) {
-            typedKeys = typedKeys.slice(-4);
-        }
+                    vibrate(
+                        [40, 50, 100]
+                    );
 
-        clearTimeout(keyResetTimer);
-
-        keyResetTimer = setTimeout(() => {
-            typedKeys = "";
-        }, 1800);
-
-        if (typedKeys === "VOID") {
-            toggleVoidMode();
-
-            typedKeys = "";
-
-            clearTimeout(keyResetTimer);
-        }
-    });
-
-    /* -----------------------------------------------------
-       MOBILE: LONG PRESS
-    ----------------------------------------------------- */
-
-    function startLongPress(event) {
-        if (!touchDevice) return;
-
-        clearTimeout(longPressTimer);
-
-        longPressTimer = setTimeout(() => {
-            toggleVoidMode();
-
-            vibrate([40, 50, 100]);
-        }, 1200);
+                },
+                1200
+            );
     }
 
     function cancelLongPress() {
-        clearTimeout(longPressTimer);
+
+        clearTimeout(
+            longPressTimer
+        );
     }
 
     document.addEventListener(
@@ -743,81 +1340,114 @@ document.addEventListener("DOMContentLoaded", () => {
         cancelLongPress
     );
 
-    /* -----------------------------------------------------
-       VOID MODE: EXTRA IMPACT ON CLICK
-    ----------------------------------------------------- */
+    /* =====================================================
+       VOID MODE IMPACT
+    ===================================================== */
 
-    document.addEventListener("pointerdown", (event) => {
-        if (!voidMode) return;
+    document.addEventListener(
+        "pointerdown",
+        (event) => {
 
-        if (
-            event.target.closest(
-                "a, button, article, li, th, td"
-            )
-        ) {
-            createRipple(
-                event.clientX,
-                event.clientY
-            );
-
-            glitch(
-                event.target.closest(
-                    "article, li, button, a"
-                ) || body
-            );
-        }
-    });
-
-    /* -----------------------------------------------------
-       IMAGE INTERACTION
-    ----------------------------------------------------- */
-
-    document.querySelectorAll("img").forEach((image) => {
-        image.addEventListener("pointerenter", () => {
-            playHoverSound();
-        });
-
-        image.addEventListener("click", (event) => {
-            createRipple(
-                event.clientX,
-                event.clientY
-            );
-
-            if (voidMode) {
-                glitch(image);
+            if (!voidMode) {
+                return;
             }
-        });
-    });
 
-    /* -----------------------------------------------------
-       INITIAL VISUAL STATE
-    ----------------------------------------------------- */
+            const target =
+                event.target.closest(
+                    "a, button, article, li, th, td"
+                );
 
-    /*
-     * Reveal anything already visible on the screen.
-     */
-    sections.forEach((section) => {
-        const rect = section.getBoundingClientRect();
+            if (!target) {
+                return;
+            }
 
-        if (rect.top < window.innerHeight * 0.9) {
-            section.classList.add("visible");
+            createRipple(
+                event.clientX,
+                event.clientY
+            );
+
+            glitch(target);
         }
-    });
+    );
 
-    /* -----------------------------------------------------
-       CLEANUP / RESIZE
-    ----------------------------------------------------- */
+    /* =====================================================
+       IMAGE INTERACTION
+    ===================================================== */
 
-    window.addEventListener("resize", () => {
-        // Recreate particles only if the device category
-        // changes dramatically after rotation.
-        updateProgress();
-        updateTopButton();
-    });
+    document.querySelectorAll(
+        "img"
+    ).forEach(
+        (image) => {
 
-    /* -----------------------------------------------------
-       CONSOLE SIGNATURE
-    ----------------------------------------------------- */
+            image.addEventListener(
+                "pointerenter",
+                (event) => {
+
+                    if (
+                        event.pointerType ===
+                        "mouse"
+                    ) {
+                        playHoverSound();
+                    }
+                }
+            );
+
+            image.addEventListener(
+                "click",
+                (event) => {
+
+                    createRipple(
+                        event.clientX,
+                        event.clientY
+                    );
+
+                    if (voidMode) {
+                        glitch(image);
+                    }
+                }
+            );
+        }
+    );
+
+    /* =====================================================
+       INITIAL SECTION STATE
+    ===================================================== */
+
+    sections.forEach(
+        (section) => {
+
+            const rect =
+                section.getBoundingClientRect();
+
+            if (
+                rect.top <
+                window.innerHeight * 0.9
+            ) {
+
+                section.classList.add(
+                    "visible"
+                );
+            }
+        }
+    );
+
+    /* =====================================================
+       RESIZE
+    ===================================================== */
+
+    window.addEventListener(
+        "resize",
+        () => {
+
+            updateProgress();
+            updateTopButton();
+
+        }
+    );
+
+    /* =====================================================
+       CONSOLE
+    ===================================================== */
 
     console.log(
         "%c VOIDSPOKEN ",
@@ -828,4 +1458,5 @@ document.addEventListener("DOMContentLoaded", () => {
         "%c The Void has been initialized.",
         "color:#c40020;"
     );
+
 });
