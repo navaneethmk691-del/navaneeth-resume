@@ -1,66 +1,90 @@
 /* =========================================================
-   VOIDSPOKEN — VOID REALM SCRIPT
+   VOIDSPOKEN — VOID REALM
+   FULL SCRIPT
    ========================================================= */
 
 
 /* =========================================================
-   CONFIGURATION
+   BASIC SETUP
    ========================================================= */
-
-const BACKGROUND_AUDIO_SRC = "./intro.mp3";
-const HOVER_AUDIO_SRC = "./hover.mp3";
 
 const body = document.body;
 
 
 /* =========================================================
-   BACKGROUND AUDIO
-   Starts ONLY after the first touch/click
+   AUDIO FILES
+   Both files are in the same folder as index.html
    ========================================================= */
 
-const backgroundAudio = document.createElement("audio");
+const BACKGROUND_AUDIO_SRC = "./intro.mp3";
+const HOVER_AUDIO_SRC = "./hover.mp3";
 
-backgroundAudio.id = "void-background-audio";
-backgroundAudio.src = BACKGROUND_AUDIO_SRC;
-backgroundAudio.preload = "auto";
+
+/* =========================================================
+   BACKGROUND MUSIC
+   NO AUTOPLAY
+   Starts only after first touch/click anywhere
+   ========================================================= */
+
+const backgroundAudio =
+    new Audio(BACKGROUND_AUDIO_SRC);
+
 backgroundAudio.loop = true;
 backgroundAudio.volume = 0.35;
-backgroundAudio.setAttribute("playsinline", "");
+backgroundAudio.preload = "auto";
 
-body.appendChild(backgroundAudio);
+backgroundAudio.setAttribute(
+    "playsinline",
+    ""
+);
 
-let backgroundStarted = false;
+let musicStarted = false;
 
-function startBackgroundAudio() {
 
-    if (backgroundStarted) return;
+function startBackgroundMusic() {
 
-    backgroundStarted = true;
+    if (musicStarted) {
+        return;
+    }
 
-    backgroundAudio.currentTime = 0;
+    backgroundAudio.play()
+        .then(() => {
 
-    const playPromise = backgroundAudio.play();
+            musicStarted = true;
 
-    if (playPromise !== undefined) {
+            console.log(
+                "VOIDSPOKEN: background music started"
+            );
 
-        playPromise.catch(() => {
-            backgroundStarted = false;
+        })
+        .catch(error => {
+
+            console.error(
+                "VOIDSPOKEN: background music failed",
+                error
+            );
+
+            musicStarted = false;
+
         });
 
-    }
 }
 
 
 /*
  * ANY touch / click / pointer interaction
- * anywhere on the screen starts the music.
+ * anywhere on the page starts intro.mp3
  *
- * No autoplay.
+ * There is intentionally NO:
+ *
+ * startBackgroundMusic();
+ *
+ * here.
  */
 
 document.addEventListener(
     "pointerdown",
-    startBackgroundAudio,
+    startBackgroundMusic,
     {
         once: true,
         passive: true
@@ -69,22 +93,28 @@ document.addEventListener(
 
 
 /* =========================================================
-   HOVER / TOUCH SOUND POOL
-   Allows sounds to overlap
+   HOVER SOUND
+   Multiple audio instances allow overlap
    ========================================================= */
 
 const hoverSounds = [];
 
 for (let i = 0; i < 6; i++) {
 
-    const sound = new Audio(HOVER_AUDIO_SRC);
+    const sound =
+        new Audio(HOVER_AUDIO_SRC);
 
     sound.preload = "auto";
     sound.volume = 0.35;
-    sound.setAttribute("playsinline", "");
+
+    sound.setAttribute(
+        "playsinline",
+        ""
+    );
 
     hoverSounds.push(sound);
 }
+
 
 let hoverIndex = 0;
 
@@ -102,11 +132,11 @@ function playHoverSound() {
 
         sound.currentTime = 0;
 
-        const playPromise =
+        const promise =
             sound.play();
 
-        if (playPromise) {
-            playPromise.catch(() => {});
+        if (promise) {
+            promise.catch(() => {});
         }
 
     } catch (error) {}
@@ -121,7 +151,8 @@ function playHoverSound() {
 const intro =
     document.createElement("div");
 
-intro.id = "void-intro";
+intro.id =
+    "void-intro";
 
 intro.innerHTML = `
 
@@ -158,7 +189,7 @@ body.prepend(intro);
 
 
 /* =========================================================
-   SAHASRARA CHAKRA
+   SAHASRARA / VOID CHAKRA
    ========================================================= */
 
 function createChakra() {
@@ -171,11 +202,13 @@ function createChakra() {
         return;
     }
 
+
     const chakra =
         document.createElement("div");
 
     chakra.id =
         "void-chakra";
+
 
     chakra.innerHTML = `
 
@@ -194,9 +227,13 @@ function createChakra() {
         </div>
 
         <div class="void-chakra-center"></div>
+
     `;
 
-    body.appendChild(chakra);
+
+    body.appendChild(
+        chakra
+    );
 
 
     const outer =
@@ -204,35 +241,51 @@ function createChakra() {
             "#chakra-outer"
         );
 
+
     const inner =
         chakra.querySelector(
             "#chakra-inner"
         );
 
 
-    /* Outer 32 petals */
+    /* Outer petals */
 
-    for (let i = 0; i < 32; i++) {
+    for (
+        let i = 0;
+        i < 32;
+        i++
+    ) {
 
         const petal =
             document.createElement("div");
 
         petal.className =
             "void-chakra-petal";
+
 
         const angle =
             i * (360 / 32);
 
-        petal.style.transform =
-            `translate(-50%, -100%) rotate(${angle}deg)`;
 
-        outer.appendChild(petal);
+        petal.style.transform =
+            `translate(-50%, -100%)
+             rotate(${angle}deg)`;
+
+
+        outer.appendChild(
+            petal
+        );
+
     }
 
 
-    /* Inner 16 petals */
+    /* Inner petals */
 
-    for (let i = 0; i < 16; i++) {
+    for (
+        let i = 0;
+        i < 16;
+        i++
+    ) {
 
         const petal =
             document.createElement("div");
@@ -240,16 +293,24 @@ function createChakra() {
         petal.className =
             "void-chakra-petal";
 
+
         const angle =
             i * (360 / 16) + 11.25;
 
-        petal.style.transform =
-            `translate(-50%, -100%) rotate(${angle}deg)`;
 
-        inner.appendChild(petal);
+        petal.style.transform =
+            `translate(-50%, -100%)
+             rotate(${angle}deg)`;
+
+
+        inner.appendChild(
+            petal
+        );
+
     }
 
 }
+
 
 createChakra();
 
@@ -290,19 +351,15 @@ function closeIntro() {
             intro &&
             intro.parentNode
         ) {
+
             intro.remove();
+
         }
 
     }, 1800);
 
 }
 
-
-/*
- * Intro lasts approximately 3.5 seconds.
- *
- * This does NOT start the audio.
- */
 
 setTimeout(
     closeIntro,
@@ -311,7 +368,7 @@ setTimeout(
 
 
 /* =========================================================
-   PARTICLE SYSTEM
+   PARTICLES
    ========================================================= */
 
 const particleContainer =
@@ -370,8 +427,12 @@ function createParticle() {
 
     setTimeout(() => {
 
-        if (particle.parentNode) {
+        if (
+            particle.parentNode
+        ) {
+
             particle.remove();
+
         }
 
     }, (duration + delay) * 1000);
@@ -379,16 +440,16 @@ function createParticle() {
 }
 
 
-for (let i = 0; i < 60; i++) {
+for (
+    let i = 0;
+    i < 60;
+    i++
+) {
 
     createParticle();
 
 }
 
-
-/*
- * Keep generating particles.
- */
 
 setInterval(() => {
 
@@ -398,7 +459,7 @@ setInterval(() => {
 
 
 /* =========================================================
-   INTERACTIVE SOUND ELEMENTS
+   INTERACTIVE ELEMENT SOUNDS
    ========================================================= */
 
 const soundTargets =
@@ -407,77 +468,104 @@ const soundTargets =
     );
 
 
-soundTargets.forEach(element => {
+soundTargets.forEach(
+    element => {
 
 
-    /* Desktop hover */
+        /* Desktop hover */
 
-    element.addEventListener(
-        "pointerenter",
-        event => {
+        element.addEventListener(
+            "pointerenter",
+            event => {
 
-            if (
-                event.pointerType ===
-                "mouse"
-            ) {
-                playHoverSound();
+                if (
+                    event.pointerType ===
+                    "mouse"
+                ) {
+
+                    playHoverSound();
+
+                }
+
             }
-
-        }
-    );
+        );
 
 
-    /* Mobile touch */
+        /* Mobile touch */
 
-    element.addEventListener(
-        "pointerdown",
-        event => {
+        element.addEventListener(
+            "pointerdown",
+            event => {
 
-            if (
-                event.pointerType !==
-                "mouse"
-            ) {
-                playHoverSound();
+                if (
+                    event.pointerType !==
+                    "mouse"
+                ) {
+
+                    playHoverSound();
+
+                }
+
             }
+        );
 
-        }
-    );
-
-});
+    }
+);
 
 
 /* =========================================================
-   GLOBAL RIPPLE EFFECT
+   RIPPLE EFFECT
    ========================================================= */
+
+function createRipple(
+    x,
+    y
+) {
+
+    const ripple =
+        document.createElement("div");
+
+    ripple.className =
+        "void-ripple";
+
+
+    ripple.style.left =
+        `${x}px`;
+
+    ripple.style.top =
+        `${y}px`;
+
+
+    body.appendChild(
+        ripple
+    );
+
+
+    setTimeout(() => {
+
+        if (
+            ripple.parentNode
+        ) {
+
+            ripple.remove();
+
+        }
+
+    }, 900);
+
+}
+
+
+/* Global touch/click ripple */
 
 document.addEventListener(
     "pointerdown",
     event => {
 
-        const ripple =
-            document.createElement("div");
-
-        ripple.className =
-            "void-ripple";
-
-
-        ripple.style.left =
-            `${event.clientX}px`;
-
-        ripple.style.top =
-            `${event.clientY}px`;
-
-
-        body.appendChild(
-            ripple
+        createRipple(
+            event.clientX,
+            event.clientY
         );
-
-
-        setTimeout(() => {
-
-            ripple.remove();
-
-        }, 900);
 
     },
     {
@@ -509,8 +597,13 @@ function createSlash(
         `${y}px`;
 
 
+    const rotation =
+        Math.random() * 90 - 45;
+
+
     slash.style.transform =
-        `translate(-50%, -50%) rotate(${Math.random() * 90 - 45}deg)`;
+        `translate(-50%, -50%)
+         rotate(${rotation}deg)`;
 
 
     body.appendChild(
@@ -520,7 +613,13 @@ function createSlash(
 
     setTimeout(() => {
 
-        slash.remove();
+        if (
+            slash.parentNode
+        ) {
+
+            slash.remove();
+
+        }
 
     }, 700);
 
@@ -541,7 +640,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   GLITCH EFFECT
+   GLITCH
    ========================================================= */
 
 function createGlitch() {
@@ -552,6 +651,7 @@ function createGlitch() {
     glitch.className =
         "void-glitch";
 
+
     body.appendChild(
         glitch
     );
@@ -559,14 +659,18 @@ function createGlitch() {
 
     setTimeout(() => {
 
-        glitch.remove();
+        if (
+            glitch.parentNode
+        ) {
+
+            glitch.remove();
+
+        }
 
     }, 450);
 
 }
 
-
-/* Random subtle glitches */
 
 setInterval(() => {
 
@@ -574,14 +678,16 @@ setInterval(() => {
         Math.random() <
         0.25
     ) {
+
         createGlitch();
+
     }
 
 }, 5000);
 
 
 /* =========================================================
-   EXPLOSION / IMPACT EFFECT
+   EXPLOSION
    ========================================================= */
 
 function createExplosion(
@@ -610,7 +716,13 @@ function createExplosion(
 
     setTimeout(() => {
 
-        explosion.remove();
+        if (
+            explosion.parentNode
+        ) {
+
+            explosion.remove();
+
+        }
 
     }, 1000);
 
@@ -675,43 +787,46 @@ const navLinks =
     );
 
 
-navLinks.forEach(link => {
+navLinks.forEach(
+    link => {
 
-    link.addEventListener(
-        "click",
-        event => {
+        link.addEventListener(
+            "click",
+            event => {
 
-            const targetId =
-                link.getAttribute(
-                    "href"
-                );
-
-            const target =
-                document.querySelector(
-                    targetId
-                );
+                const targetId =
+                    link.getAttribute(
+                        "href"
+                    );
 
 
-            if (!target) {
-                return;
+                const target =
+                    document.querySelector(
+                        targetId
+                    );
+
+
+                if (!target) {
+                    return;
+                }
+
+
+                event.preventDefault();
+
+
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+
+                playHoverSound();
+
             }
+        );
 
-
-            event.preventDefault();
-
-
-            target.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-
-
-            playHoverSound();
-
-        }
-    );
-
-});
+    }
+);
 
 
 /* =========================================================
@@ -819,6 +934,7 @@ tiltElements.forEach(
                 const centerX =
                     rect.width / 2;
 
+
                 const centerY =
                     rect.height / 2;
 
@@ -877,9 +993,9 @@ function updateProgress() {
     const scrollTop =
         window.scrollY;
 
+
     const documentHeight =
-        document.documentElement
-            .scrollHeight -
+        document.documentElement.scrollHeight -
         window.innerHeight;
 
 
@@ -926,6 +1042,7 @@ topButton.setAttribute(
 topButton.innerHTML =
     "↑";
 
+
 body.appendChild(
     topButton
 );
@@ -939,6 +1056,7 @@ topButton.addEventListener(
             top: 0,
             behavior: "smooth"
         });
+
 
         playHoverSound();
 
@@ -984,9 +1102,11 @@ const cursor =
 cursor.className =
     "void-cursor";
 
+
 cursor.innerHTML = `
     <div class="void-cursor-core"></div>
 `;
+
 
 body.appendChild(
     cursor
@@ -1019,7 +1139,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   CURSOR INTERACTION
+   CURSOR CLICK EFFECT
    ========================================================= */
 
 document.addEventListener(
@@ -1034,6 +1154,7 @@ document.addEventListener(
             cursor.classList.add(
                 "active"
             );
+
 
             setTimeout(() => {
 
@@ -1091,11 +1212,8 @@ window.addEventListener(
 
 /* =========================================================
    VOID MODE
-   Desktop:
-   Type VOID
-
-   Mobile:
-   Hold screen for 1.2 seconds
+   Desktop: type VOID
+   Mobile: hold for 1.2 seconds
    ========================================================= */
 
 let typedKeys = "";
@@ -1112,6 +1230,7 @@ function activateVoidMode() {
 
 
     voidMode = true;
+
 
     body.classList.add(
         "void-mode"
@@ -1131,6 +1250,7 @@ function activateVoidMode() {
 
         voidMode = false;
 
+
         body.classList.remove(
             "void-mode"
         );
@@ -1140,7 +1260,9 @@ function activateVoidMode() {
 }
 
 
-/* Desktop keyboard */
+/* =========================================================
+   DESKTOP VOID MODE
+   ========================================================= */
 
 document.addEventListener(
     "keydown",
@@ -1183,7 +1305,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   MOBILE LONG PRESS
+   MOBILE LONG PRESS VOID MODE
    ========================================================= */
 
 let longPressTimer =
@@ -1247,7 +1369,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   IMAGE INTERACTION
+   IMAGE IMPACT
    ========================================================= */
 
 const images =
@@ -1276,8 +1398,8 @@ images.forEach(
 
 
 /* =========================================================
-   CORE SKILLS COMPATIBILITY
-   Supports both IDs:
+   CORE SKILLS
+   Supports both:
    #core-skills
    #coreskills
    ========================================================= */
@@ -1322,73 +1444,7 @@ if (coreSkills) {
 
 
 /* =========================================================
-   MOBILE TOUCH FEEDBACK
-   ========================================================= */
-
-document.addEventListener(
-    "touchstart",
-    event => {
-
-        const touch =
-            event.touches[0];
-
-
-        if (!touch) {
-            return;
-        }
-
-
-        createRipple(
-            touch.clientX,
-            touch.clientY
-        );
-
-    },
-    {
-        passive: true
-    }
-);
-
-
-/* =========================================================
-   RIPPLE FUNCTION
-   ========================================================= */
-
-function createRipple(
-    x,
-    y
-) {
-
-    const ripple =
-        document.createElement("div");
-
-    ripple.className =
-        "void-ripple";
-
-
-    ripple.style.left =
-        `${x}px`;
-
-    ripple.style.top =
-        `${y}px`;
-
-
-    body.appendChild(
-        ripple
-    );
-
-
-    setTimeout(() => {
-
-        ripple.remove();
-
-    }, 900);
-
-}
-
-
-/* =========================================================
-   RESIZE HANDLER
+   RESIZE
    ========================================================= */
 
 window.addEventListener(
@@ -1411,16 +1467,15 @@ if (
     ).matches
 ) {
 
-    document.documentElement
-        .classList.add(
-            "reduced-motion"
-        );
+    document.documentElement.classList.add(
+        "reduced-motion"
+    );
 
 }
 
 
 /* =========================================================
-   VOID CONSOLE SIGNATURE
+   VOIDSPOKEN CONSOLE
    ========================================================= */
 
 console.log(
