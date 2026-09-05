@@ -26,6 +26,139 @@
 
 
 /* =========================================================
+   LIGHTNING EFFECTS
+========================================================= */
+
+#lightning-edges {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lightning-edge {
+  position: absolute;
+  background: linear-gradient(90deg, 
+    transparent, 
+    #ff0000, 
+    #000000, 
+    #0000ff, 
+    #ffffff, 
+    transparent);
+  opacity: 0;
+  filter: blur(2px);
+}
+
+.lightning-top {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  animation: lightningFlickerTop 0.4s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(255, 0, 0, 0.8),
+              0 0 60px rgba(0, 0, 255, 0.6),
+              0 0 20px rgba(255, 255, 255, 0.5),
+              inset 0 0 20px rgba(255, 0, 0, 0.4);
+}
+
+.lightning-right {
+  right: 0;
+  top: 0;
+  width: 12px;
+  height: 100%;
+  animation: lightningFlickerRight 0.5s ease-in-out infinite;
+  box-shadow: -30px 0 30px rgba(255, 0, 0, 0.8),
+              -60px 0 60px rgba(0, 0, 255, 0.6),
+              -20px 0 20px rgba(255, 255, 255, 0.5),
+              inset -20px 0 20px rgba(0, 0, 255, 0.4);
+}
+
+.lightning-bottom {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  animation: lightningFlickerBottom 0.4s ease-in-out infinite;
+  box-shadow: 0 -30px 30px rgba(255, 0, 0, 0.8),
+              0 -60px 60px rgba(0, 0, 255, 0.6),
+              0 -20px 20px rgba(255, 255, 255, 0.5),
+              inset 0 -20px 20px rgba(255, 0, 0, 0.4);
+}
+
+.lightning-left {
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 100%;
+  animation: lightningFlickerLeft 0.5s ease-in-out infinite;
+  box-shadow: 30px 0 30px rgba(255, 0, 0, 0.8),
+              60px 0 60px rgba(0, 0, 255, 0.6),
+              20px 0 20px rgba(255, 255, 255, 0.5),
+              inset 20px 0 20px rgba(0, 0, 255, 0.4);
+}
+
+@keyframes lightningFlickerTop {
+  0%, 100% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes lightningFlickerRight {
+  0%, 100% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes lightningFlickerBottom {
+  0%, 100% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes lightningFlickerLeft {
+  0%, 100% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.2;
+  }
+}
+
+
+/* =========================================================
    RESET
 ========================================================= */
 
