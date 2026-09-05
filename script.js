@@ -15,17 +15,7 @@ let voidBattleSystem = null;
 /* =========================================================
    BASIC SETUP
 ========================================================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const intro = document.getElementById("void-intro");
-    const body = document.body;
-
-
-    /* =====================================================
-       INTRO
-    ===================================================== */
-   window.addEventListener("load", () => {
+window.addEventListener("load", () => {
 
     const intro = document.getElementById("void-intro");
 
@@ -47,7 +37,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3200);
 
 });
+document.addEventListener("DOMContentLoaded", () => {
 
+    const intro = document.getElementById("void-intro");
+    const body = document.body;
+
+
+    /* =====================================================
+       INTRO
+    ===================================================== */
+   
     if (intro) {
 
         setTimeout(() => {
