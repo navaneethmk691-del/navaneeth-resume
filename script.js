@@ -25,6 +25,28 @@ document.addEventListener("DOMContentLoaded", () => {
     /* =====================================================
        INTRO
     ===================================================== */
+   window.addEventListener("load", () => {
+
+    const intro = document.getElementById("void-intro");
+
+    if (!intro) return;
+
+    setTimeout(() => {
+
+        intro.style.transition =
+            "opacity 0.45s ease, visibility 0.45s ease";
+
+        intro.style.opacity = "0";
+
+        intro.style.visibility = "hidden";
+
+        setTimeout(() => {
+            intro.remove();
+        }, 500);
+
+    }, 3200);
+
+});
 
     if (intro) {
 
